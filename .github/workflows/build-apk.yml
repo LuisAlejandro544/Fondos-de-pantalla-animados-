@@ -40,30 +40,27 @@ jobs:
 
       - name: Generate On-The-Fly Keystore (Llave en Caliente)
         run: |
-          keytool -genkeypair -v \
-            -keystore debug_action.jks \
-            -keyalg RSA \
-            -keysize 2048 \
-            -validity 10000 \
-            -alias debug_alias \
-            -storepass androidpass \
-            -keypass androidpass \
-            -dname "CN=VideoWallpaper, OU=Dev, O=App, L=City, S=State, C=US"
+          if [ ! -f "debug.keystore" ]; then
+            keytool -genkeypair -v \
+              -keystore debug.keystore \
+              -keyalg RSA \
+              -keysize 2048 \
+              -validity 10000 \
+              -alias androiddebugkey \
+              -storepass android \
+              -keypass android \
+              -dname "CN=Android Debug, O=Android, C=US"
+          fi
 
       - name: Build Debug APK
         run: gradle assembleDebug --stacktrace
 
-      - name: Sign Debug APK with Generated Keystore
+      - name: Verify Signed Debug APK
         run: |
           APK_PATH=$(find app/build/outputs/apk/debug/ -name "*.apk" | head -n 1)
-          echo "Signing APK at: $APK_PATH"
+          echo "Verificando firma de APK en: $APK_PATH"
           BUILD_TOOLS_DIR=$(ls -d ${ANDROID_HOME}/build-tools/* | tail -n 1)
-          $BUILD_TOOLS_DIR/apksigner sign \
-            --ks debug_action.jks \
-            --ks-pass pass:androidpass \
-            --key-pass pass:androidpass \
-            --ks-key-alias debug_alias \
-            "$APK_PATH"
+          $BUILD_TOOLS_DIR/apksigner verify --verbose "$APK_PATH"
 
       - name: Upload Signed APK Artifact
         uses: actions/upload-artifact@v4
