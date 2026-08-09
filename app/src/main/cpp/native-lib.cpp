@@ -130,16 +130,21 @@ Java_com_example_native_VideoNativeBridge_getEngineStats(
         jobject /* this */,
         jboolean isNativeActive,
         jboolean batterySaverOn,
-        jint qualityIndex) {
+        jint qualityIndex,
+        jboolean sharpnessOn,
+        jboolean compressionOn) {
 
-    std::string modeStr = isNativeActive ? "Motor Ultrasuave Activo" : "Motor Estándar";
-    std::string batteryStr = batterySaverOn ? "Ahorro Máximo Encendido" : "Rendimiento Normal";
+    std::string modeStr = isNativeActive ? "Motor Ultrasuave" : "Motor Estándar";
+    std::string batteryStr = batterySaverOn ? "Ahorro Máximo" : "Rendimiento Normal";
     
-    std::string resStr = "Máxima Calidad (Original)";
-    if (qualityIndex == 1) resStr = "1080p Calidad Alta";
-    else if (qualityIndex == 2) resStr = "720p Ahorro Normal";
-    else if (qualityIndex == 3) resStr = "540p Ahorro Máximo";
+    std::string resStr = "Original";
+    if (qualityIndex == 1) resStr = "1080p Alta";
+    else if (qualityIndex == 2) resStr = "720p Normal";
+    else if (qualityIndex == 3) resStr = "540p Máx. Ahorro";
 
-    std::string fullStats = "Modo: " + modeStr + " | Batería: " + batteryStr + " | Calidad: " + resStr;
+    std::string sharpStr = sharpnessOn ? "Nitidez Activa" : "Nitidez Desactivada";
+    std::string compStr = compressionOn ? "Compresión Activa" : "Compresión Desactivada";
+
+    std::string fullStats = modeStr + " • Batería: " + batteryStr + " • Calidad: " + resStr + " • " + sharpStr + " • " + compStr;
     return env->NewStringUTF(fullStats.c_str());
 }

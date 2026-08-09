@@ -8,25 +8,43 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BatterySaver
+import androidx.compose.material.icons.filled.Compress
 import androidx.compose.material.icons.filled.HighQuality
 import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.Speed
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.data.WallpaperConfig
 import com.example.ui.VideoResolutionInfo
+
+data class OptionInfoDetails(
+    val title: String,
+    val activatedEffect: String,
+    val deactivatedEffect: String,
+    val pros: List<String>,
+    val cons: List<String>,
+    val idealUseCases: String
+)
 
 @Composable
 fun AdvancedSettingsCard(
@@ -36,8 +54,11 @@ fun AdvancedSettingsCard(
     onUseBatterySaverChanged: (Boolean) -> Unit,
     onQualityResolutionIndexChanged: (Int) -> Unit,
     onHardwareSharpnessChanged: (Boolean) -> Unit,
+    onUseVideoCompressionChanged: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    var selectedInfoOption by remember { mutableStateOf<OptionInfoDetails?>(null) }
+
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -82,7 +103,17 @@ fun AdvancedSettingsCard(
                 subtitle = "Usa el motor de alta velocidad para que el vídeo se reproduzca fluido y sin interrupciones",
                 checked = config.useNativeEngine,
                 onCheckedChange = onUseNativeEngineChanged,
-                testTag = "use_native_engine_switch"
+                testTag = "use_native_engine_switch",
+                onInfoClick = {
+                    selectedInfoOption = OptionInfoDetails(
+                        title = "Reproducción Eficiente Ultra Suave (Motor C++)",
+                        activatedEffect = "Envía los cuadros del vídeo directo a la pantalla por el motor gráfico rápido del teléfono. Evita que la memoria se llene o cause tirones.",
+                        deactivatedEffect = "Usa el reproductor básico de Android. Funciona bien en vídeos sencillos, pero puede pausarse un segundo en vídeos muy pesados.",
+                        pros = listOf("Vídeos 4K y Full HD fluidos sin pausas", "El teléfono no se calienta", "Menor carga para el procesador"),
+                        cons = listOf("Usa un poco más de memoria inicial al arrancar el fondo"),
+                        idealUseCases = "Ideal si pones vídeos largos de alta calidad, grabaciones en 4K o vídeos descargados de TikTok en teléfonos de gama media y alta."
+                    )
+                }
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -97,7 +128,17 @@ fun AdvancedSettingsCard(
                 subtitle = "Reduce el consumo de energía hasta un 60% optimizando la velocidad del vídeo",
                 checked = config.useBatterySaver,
                 onCheckedChange = onUseBatterySaverChanged,
-                testTag = "use_battery_saver_switch"
+                testTag = "use_battery_saver_switch",
+                onInfoClick = {
+                    selectedInfoOption = OptionInfoDetails(
+                        title = "Ahorro de Batería Máximo",
+                        activatedEffect = "Adapta la velocidad del vídeo a un ritmo económico (~30 FPS) y detiene el procesamiento en segundo plano cuando abres otras aplicaciones.",
+                        deactivatedEffect = "El vídeo reproduce continuamente a la máxima velocidad posible de la pantalla (hasta 60 FPS).",
+                        pros = listOf("Ahorra hasta un 60% de energía", "Mantiene la batería fría durante todo el día", "Aumenta las horas de uso de la batería"),
+                        cons = listOf("El movimiento del vídeo se ve un poco menos acelerado"),
+                        idealUseCases = "Recomendado para todos los días, especialmente si pasas mucho tiempo fuera de casa o la batería de tu teléfono dura poco."
+                    )
+                }
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -112,7 +153,42 @@ fun AdvancedSettingsCard(
                 subtitle = "Mantiene el vídeo nítido y claro incluso si eliges una resolución menor",
                 checked = config.hardwareSharpness,
                 onCheckedChange = onHardwareSharpnessChanged,
-                testTag = "hardware_sharpness_switch"
+                testTag = "hardware_sharpness_switch",
+                onInfoClick = {
+                    selectedInfoOption = OptionInfoDetails(
+                        title = "Mejora de Nitidez de Imagen",
+                        activatedEffect = "Aplica un realce automático en los bordes de los objetos del vídeo para mantener los detalles bien definidos.",
+                        deactivatedEffect = "Muestra los colores y líneas exactamente tal como están en el archivo original sin retoques.",
+                        pros = listOf("Permite bajar la resolución del vídeo a 720p ahorrando batería sin perder nitidez visual", "Colores y letras más definidos"),
+                        cons = listOf("Aumenta ligeramente el uso de la tarjeta gráfica"),
+                        idealUseCases = "Perfecto si bajaste la calidad del vídeo a 1080p o 720p para ahorrar batería pero quieres que se siga viendo impecable."
+                    )
+                }
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Switch 4: Video Compression
+            SettingSwitchRow(
+                icon = Icons.Default.Compress,
+                iconTint = MaterialTheme.colorScheme.primary,
+                title = "Compresión Inteligente de Archivo",
+                subtitle = "Comprime el peso del vídeo manteniendo la nitidez visual para que ocupe menos espacio y cargue al instante",
+                checked = config.useVideoCompression,
+                onCheckedChange = onUseVideoCompressionChanged,
+                testTag = "use_video_compression_switch",
+                onInfoClick = {
+                    selectedInfoOption = OptionInfoDetails(
+                        title = "Compresión Inteligente de Archivo",
+                        activatedEffect = "Optimiza la tasa de datos del archivo en memoria reduciendo los megabytes que consume la aplicación sin distorsionar la imagen.",
+                        deactivatedEffect = "Mantiene el peso íntegro del archivo de vídeo tal como vino de la cámara o de internet.",
+                        pros = listOf("Libera espacio de almacenamiento", "El fondo de pantalla carga al instante", "Evita ralentizar el teléfono"),
+                        cons = listOf("En pantallas 4K gigantescas puede haber una minúscula diferencia si el vídeo original medía varios gigabytes"),
+                        idealUseCases = "Ideal para vídeos de TikTok, descargas de internet o si tienes poco espacio libre en el almacenamiento interno de tu teléfono."
+                    )
+                }
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -128,10 +204,107 @@ fun AdvancedSettingsCard(
 
             // Status Badge
             EngineStatusCard(
-                useNativeEngine = config.useNativeEngine,
-                useBatterySaver = config.useBatterySaver,
-                qualityResolutionIndex = config.qualityResolutionIndex
+                config = config
             )
         }
     }
+
+    // Modal de Información sobre la opción seleccionada
+    selectedInfoOption?.let { details ->
+        AlertDialog(
+            onDismissRequest = { selectedInfoOption = null },
+            title = {
+                Text(
+                    text = details.title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .verticalScroll(rememberScrollState())
+                ) {
+                    Text(
+                        text = "⚡ ¿Qué pasa al encenderla?",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = details.activatedEffect,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    Text(
+                        text = "🔌 ¿Qué pasa al apagarla?",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                    Text(
+                        text = details.deactivatedEffect,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    Text(
+                        text = "✅ Ventajas principales",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    details.pros.forEach { pro ->
+                        Text(
+                            text = "• $pro",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    Text(
+                        text = "⚠️ A tener en cuenta",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    details.cons.forEach { con ->
+                        Text(
+                            text = "• $con",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    Text(
+                        text = "💡 ¿Cuándo usarla?",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.tertiary
+                    )
+                    Text(
+                        text = details.idealUseCases,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { selectedInfoOption = null }) {
+                    Text("Entendido", fontWeight = FontWeight.Bold)
+                }
+            }
+        )
+    }
 }
+

@@ -139,11 +139,31 @@ class VideoWallpaperService : WallpaperService() {
             currentConfig = newConfig
 
             if (oldConfig?.videoUri != newConfig.videoUri) {
-                // Video changed, reload
+                // Video changed, reload player
                 surfaceHolder?.let { playVideo(it) }
             } else {
-                // Sound or scale changed, update live player
-                mediaPlayer?.let { applySound(it, newConfig) }
+                // Sound, scale, resolution, or NDK settings changed
+                mediaPlayer?.let { player ->
+                    applySound(player, newConfig)
+
+                    // Reconfigure ANativeWindow buffer geometry if native engine is active
+                    surfaceHolder?.let { holder ->
+                        if (newConfig.useNativeEngine && com.example.native.VideoNativeBridge.isNativeReady()) {
+                            val vW = if (player.videoWidth > 0) player.videoWidth else 1080
+                            val vH = if (player.videoHeight > 0) player.videoHeight else 1920
+                            val dims = com.example.native.VideoNativeBridge.calculateOptimalResolution(
+                                vW, vH, newConfig.qualityResolutionIndex
+                            )
+                            com.example.native.VideoNativeBridge.configureNativeWindowSurface(
+                                holder.surface,
+                                dims[0],
+                                dims[1],
+                                newConfig.hardwareSharpness
+                            )
+                            Log.i("VideoWallpaperService", "Reconfiguración dinámica de NDK Surface: ${dims[0]}x${dims[1]} (Nitidez: ${newConfig.hardwareSharpness})")
+                        }
+                    }
+                }
             }
         }
 

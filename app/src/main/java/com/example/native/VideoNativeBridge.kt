@@ -25,7 +25,13 @@ object VideoNativeBridge {
     external fun isHardwareAccelerationSupported(): Boolean
     external fun configureNativeWindowSurface(surface: Surface, targetWidth: Int, targetHeight: Int, enableHardwareSharpness: Boolean): Boolean
     external fun calculateOptimalResolution(origWidth: Int, origHeight: Int, qualityModeIndex: Int): IntArray
-    external fun getEngineStats(isNativeActive: Boolean, batterySaverOn: Boolean, qualityIndex: Int): String
+    external fun getEngineStats(
+        isNativeActive: Boolean,
+        batterySaverOn: Boolean,
+        qualityIndex: Int,
+        sharpnessOn: Boolean,
+        compressionOn: Boolean
+    ): String
 
     fun isNativeReady(): Boolean = isNativeLoaded
 

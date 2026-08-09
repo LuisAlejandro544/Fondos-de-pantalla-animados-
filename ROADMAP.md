@@ -24,7 +24,7 @@ Este documento detalla las fases de desarrollo planificadas para la evolución d
 - [x] Desactivación y bypass de subsistemas de audio (AudioFlinger / AudioTrack) cuando el fondo está silenciado.
 - [x] Detección en tiempo real de la resolución del vídeo (`MediaMetadataRetriever`) y bloqueo automático de opciones de resolución mayores a la fuente.
 - [x] Escalado inteligente de resolución para vídeos 4K/HD con selector multirresolución (1080p, 720p, 540p) conservando densidad de nitidez.
-- [x] Controles de encendido/apagado para Motor Nativo C++, Ahorro de Batería Extremo y Nitidez Perceptual.
+- [x] Controles de encendido/apagado para Motor Nativo C++, Ahorro de Batería Máximo, Nitidez de Imagen y Compresión Inteligente de Archivo.
 - [x] Descargador de vídeos de TikTok sin marca de agua integrado por enlace público (soporte `vt.tiktok.com` y URLs largas).
 - [x] Integración de descargas con detección de resolución automática, downscaling (1080p, 720p, 540p) y controles de audio.
 - [x] Botón directo para restaurar el fondo respaldado o abrir el selector de fondos nativo del sistema.

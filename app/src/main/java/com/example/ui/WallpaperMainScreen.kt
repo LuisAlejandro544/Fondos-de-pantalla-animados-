@@ -195,7 +195,8 @@ fun WallpaperMainScreen(
                 onUseNativeEngineChanged = { viewModel.onUseNativeEngineChanged(it) },
                 onUseBatterySaverChanged = { viewModel.onUseBatterySaverChanged(it) },
                 onQualityResolutionIndexChanged = { viewModel.onQualityResolutionIndexChanged(it) },
-                onHardwareSharpnessChanged = { viewModel.onHardwareSharpnessChanged(it) }
+                onHardwareSharpnessChanged = { viewModel.onHardwareSharpnessChanged(it) },
+                onUseVideoCompressionChanged = { viewModel.onUseVideoCompressionChanged(it) }
             )
 
             Spacer(modifier = Modifier.height(20.dp))

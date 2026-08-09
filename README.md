@@ -34,11 +34,12 @@
 - **Detección de Resolución en Tiempo Real & Control Inteligente**:
   - Detección automática en tiempo real de las dimensiones originales del vídeo (ancho, alto y orientación), tanto para vídeos locales como descargados de TikTok.
   - Bloqueo de selecciones de resolución superiores al vídeo de origen para evitar reescalados innecesarios y consumo absurdo de GPU.
-- **Ajustes Avanzados & Calidad 4K (Control de Batería y Resolución)**:
+- **Ajustes Avanzados & Rendimiento**:
   - Interruptor para activar/desactivar el **Motor Nativo C++/Rust NDK**.
-  - Interruptor para **Ahorro Extremo de Batería** (reducción de consumo hasta un 60%).
-  - Interruptor para **Filtro de Nitidez Perceptual NDK** (mantiene apariencia tipo 4K en pantallas móviles).
-  - Selector de resoluciones dinámicas: **Original (Nativa)**, **1080p Inteligente**, **720p Ecológico** y **540p Máximo Ahorro** (con deshabilitación automática de opciones no aptas).
+  - Interruptor para **Ahorro de Batería Máximo** (reduce el consumo hasta un 60%).
+  - Interruptor para **Mejora de Nitidez de Imagen** (mantiene nitidez y claridad).
+  - Interruptor para **Compresión Inteligente de Archivo** (reduce la tasa de bits y peso del vídeo manteniendo nitidez perceptual para ahorrar memoria y espacio).
+  - Selector de resoluciones dinámicas: **Original (Máxima Calidad)**, **1080p Alta**, **720p Normal** y **540p Máximo Ahorro** (con deshabilitación automática de opciones no aptas).
 - **Respaldo y Gestión de Fondo de Pantalla**:
   - Respalda automáticamente el fondo estático previo en alta calidad.
   - Botón de **Restaurar fondo de pantalla estático respaldado** (con fallback automático a limpiar el live wallpaper de fábrica).

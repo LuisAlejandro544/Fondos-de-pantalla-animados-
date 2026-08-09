@@ -176,6 +176,10 @@ class WallpaperViewModel(
         preferences.saveHardwareSharpness(enabled)
     }
 
+    fun onUseVideoCompressionChanged(enabled: Boolean) {
+        preferences.saveUseVideoCompression(enabled)
+    }
+
     fun isServiceActiveWallpaper(context: Context): Boolean {
         return WallpaperBackupManager.isServiceActiveWallpaper(context)
     }

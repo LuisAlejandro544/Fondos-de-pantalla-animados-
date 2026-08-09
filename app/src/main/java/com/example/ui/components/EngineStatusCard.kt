@@ -14,19 +14,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.data.WallpaperConfig
 import com.example.native.VideoNativeBridge
 
 @Composable
 fun EngineStatusCard(
-    useNativeEngine: Boolean,
-    useBatterySaver: Boolean,
-    qualityResolutionIndex: Int,
+    config: WallpaperConfig,
     modifier: Modifier = Modifier
 ) {
     val engineStats = VideoNativeBridge.getEngineStats(
-        useNativeEngine,
-        useBatterySaver,
-        qualityResolutionIndex
+        config.useNativeEngine,
+        config.useBatterySaver,
+        config.qualityResolutionIndex,
+        config.hardwareSharpness,
+        config.useVideoCompression
     )
 
     Column(
@@ -37,7 +38,7 @@ fun EngineStatusCard(
             .padding(12.dp)
     ) {
         Text(
-            text = "Estado del Motor:",
+            text = "Estado del Motor en Tiempo Real:",
             style = MaterialTheme.typography.labelMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.primary
