@@ -43,6 +43,10 @@ jobs:
 
           rm -rf "$TEMP_DIR"
 
+          # Eliminar los archivos ZIP de la carpeta zips/ para mantener el repositorio limpio
+          echo "Eliminando archivos .zip procesados de zips/..."
+          rm -f zips/*.zip
+
       - name: Configure Git User
         run: |
           git config --global user.name "GitHub Code Sync Bot"

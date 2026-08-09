@@ -22,8 +22,11 @@ Este documento detalla las fases de desarrollo planificadas para la evolución d
 - [x] Pausa inmediata en invisibilidad y apagado de pantalla mediante `BroadcastReceiver` (`ACTION_SCREEN_OFF` / `ACTION_SCREEN_ON`) para control térmico anti-sobrecalentamiento.
 - [x] Decodificación Hardware Directa (NATIVE HEVC / H.264) con salida directa a Surface.
 - [x] Desactivación y bypass de subsistemas de audio (AudioFlinger / AudioTrack) cuando el fondo está silenciado.
+- [x] Detección en tiempo real de la resolución del vídeo (`MediaMetadataRetriever`) y bloqueo automático de opciones de resolución mayores a la fuente.
 - [x] Escalado inteligente de resolución para vídeos 4K/HD con selector multirresolución (1080p, 720p, 540p) conservando densidad de nitidez.
 - [x] Controles de encendido/apagado para Motor Nativo C++, Ahorro de Batería Extremo y Nitidez Perceptual.
+- [x] Descargador de vídeos de TikTok sin marca de agua integrado por enlace público (soporte `vt.tiktok.com` y URLs largas).
+- [x] Integración de descargas con detección de resolución automática, downscaling (1080p, 720p, 540p) y controles de audio.
 - [x] Botón directo para restaurar el fondo respaldado o abrir el selector de fondos nativo del sistema.
 - [x] Pipeline de Integración Continua con GitHub Actions (`build-apk.yml` con `workflow_dispatch`).
 - [x] Firma de APK Debug con generación de llave en caliente (`keytool`) y caché de dependencias Gradle y Cargo.

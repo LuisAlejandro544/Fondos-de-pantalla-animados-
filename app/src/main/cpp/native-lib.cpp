@@ -132,14 +132,14 @@ Java_com_example_native_VideoNativeBridge_getEngineStats(
         jboolean batterySaverOn,
         jint qualityIndex) {
 
-    std::string modeStr = isNativeActive ? "Acelerado por C++/NDK MediaCodec" : "Android ExoPlayer Estándar";
-    std::string batteryStr = batterySaverOn ? "Activo (Rust Zero-Cost Throttling ~30 FPS)" : "Desactivado (60 FPS)";
+    std::string modeStr = isNativeActive ? "Motor Ultrasuave Activo" : "Motor Estándar";
+    std::string batteryStr = batterySaverOn ? "Ahorro Máximo Encendido" : "Rendimiento Normal";
     
-    std::string resStr = "4K / Nativo";
-    if (qualityIndex == 1) resStr = "1080p Inteligente (Alta Nitidez)";
-    else if (qualityIndex == 2) resStr = "720p Ecológico";
-    else if (qualityIndex == 3) resStr = "540p Máximo Ahorro";
+    std::string resStr = "Máxima Calidad (Original)";
+    if (qualityIndex == 1) resStr = "1080p Calidad Alta";
+    else if (qualityIndex == 2) resStr = "720p Ahorro Normal";
+    else if (qualityIndex == 3) resStr = "540p Ahorro Máximo";
 
-    std::string fullStats = "Motor: " + modeStr + " | Batería: " + batteryStr + " | Calidad: " + resStr;
+    std::string fullStats = "Modo: " + modeStr + " | Batería: " + batteryStr + " | Calidad: " + resStr;
     return env->NewStringUTF(fullStats.c_str());
 }

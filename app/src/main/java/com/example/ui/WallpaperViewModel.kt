@@ -5,11 +5,6 @@ import android.content.ComponentName
 import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.graphics.Canvas
-import android.graphics.drawable.BitmapDrawable
-import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
@@ -19,6 +14,9 @@ import com.example.data.ScaleMode
 import com.example.data.WallpaperConfig
 import com.example.data.WallpaperPreferences
 import com.example.service.VideoWallpaperService
+import com.example.ui.helpers.DownloadState
+import com.example.ui.helpers.TikTokDownloader
+import com.example.ui.helpers.WallpaperBackupManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -27,8 +25,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.File
-import java.io.FileOutputStream
 
 class WallpaperViewModel(
     private val preferences: WallpaperPreferences
@@ -37,6 +33,12 @@ class WallpaperViewModel(
     private val _hasOriginalBackup = MutableStateFlow(false)
     val hasOriginalBackup: StateFlow<Boolean> = _hasOriginalBackup.asStateFlow()
 
+    private val _videoResolutionInfo = MutableStateFlow<VideoResolutionInfo?>(null)
+    val videoResolutionInfo: StateFlow<VideoResolutionInfo?> = _videoResolutionInfo.asStateFlow()
+
+    private val _downloadState = MutableStateFlow<DownloadState>(DownloadState.Idle)
+    val downloadState: StateFlow<DownloadState> = _downloadState.asStateFlow()
+
     val configState: StateFlow<WallpaperConfig> = preferences.configFlow
         .stateIn(
             scope = viewModelScope,
@@ -44,119 +46,105 @@ class WallpaperViewModel(
             initialValue = preferences.loadConfig()
         )
 
+    fun detectVideoResolution(context: Context, videoUriString: String) {
+        if (videoUriString.isBlank()) {
+            _videoResolutionInfo.value = null
+            return
+        }
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val retriever = android.media.MediaMetadataRetriever()
+                retriever.setDataSource(context, Uri.parse(videoUriString))
+                val widthStr = retriever.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)
+                val heightStr = retriever.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)
+                val rotationStr = retriever.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION)
+                retriever.release()
+
+                var w = widthStr?.toIntOrNull() ?: 0
+                var h = heightStr?.toIntOrNull() ?: 0
+                val rotation = rotationStr?.toIntOrNull() ?: 0
+                if (rotation == 90 || rotation == 270) {
+                    val temp = w
+                    w = h
+                    h = temp
+                }
+
+                if (w > 0 && h > 0) {
+                    val info = VideoResolutionInfo(w, h)
+                    _videoResolutionInfo.value = info
+
+                    // Validate if current selected resolution index is higher than source video resolution
+                    val minDim = info.effectiveHeight
+                    val currentIdx = configState.value.qualityResolutionIndex
+                    
+                    val is1080pAllowed = minDim > 1080
+                    val is720pAllowed = minDim > 720
+                    val is540pAllowed = minDim > 540
+
+                    if ((currentIdx == 1 && !is1080pAllowed) ||
+                        (currentIdx == 2 && !is720pAllowed) ||
+                        (currentIdx == 3 && !is540pAllowed)) {
+                        onQualityResolutionIndexChanged(0) // Fallback to Original
+                    }
+                }
+            } catch (e: Exception) {
+                Log.w("WallpaperViewModel", "Could not detect video resolution: ${e.message}")
+            }
+        }
+    }
+
     fun checkOriginalBackup(context: Context) {
-        val file = File(context.filesDir, ORIGINAL_WALLPAPER_FILENAME)
-        _hasOriginalBackup.value = file.exists()
+        _hasOriginalBackup.value = WallpaperBackupManager.checkOriginalBackup(context)
     }
 
     fun backupOriginalWallpaperIfNeeded(context: Context) {
         viewModelScope.launch(Dispatchers.IO) {
-            val file = File(context.filesDir, ORIGINAL_WALLPAPER_FILENAME)
-            if (file.exists()) {
-                // Original static wallpaper already backed up! Keep it forever.
+            val backedUp = WallpaperBackupManager.backupOriginalWallpaperIfNeeded(context)
+            if (backedUp) {
                 _hasOriginalBackup.value = true
-                return@launch
-            }
-
-            // Only capture if active wallpaper is NOT our live video wallpaper
-            if (!isServiceActiveWallpaper(context)) {
-                try {
-                    val wallpaperManager = WallpaperManager.getInstance(context)
-                    val drawable = wallpaperManager.drawable
-                    if (drawable != null) {
-                        val bitmap = drawableToBitmap(drawable)
-                        if (bitmap != null) {
-                            FileOutputStream(file).use { out ->
-                                bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
-                            }
-                            _hasOriginalBackup.value = true
-                            Log.i("WallpaperViewModel", "Respaldo del fondo de pantalla original guardado correctamente.")
-                        }
-                    }
-                } catch (e: Exception) {
-                    Log.e("WallpaperViewModel", "Error al respaldar el fondo original", e)
-                }
             }
         }
     }
 
     fun restoreOriginalWallpaper(context: Context, onResult: (Boolean) -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
-            val file = File(context.filesDir, ORIGINAL_WALLPAPER_FILENAME)
-            val wallpaperManager = WallpaperManager.getInstance(context)
-
-            if (file.exists()) {
-                try {
-                    val bitmap = BitmapFactory.decodeFile(file.absolutePath)
-                    if (bitmap != null) {
-                        wallpaperManager.setBitmap(bitmap)
-                        withContext(Dispatchers.Main) { onResult(true) }
-                        return@launch
-                    }
-                } catch (e: Exception) {
-                    Log.e("WallpaperViewModel", "Error al restaurar bitmap original", e)
-                }
-            }
-
-            // Fallback: Clear live wallpaper service to return to system default wallpaper
-            try {
-                wallpaperManager.clear()
-                withContext(Dispatchers.Main) { onResult(true) }
-            } catch (e: Exception) {
-                Log.e("WallpaperViewModel", "Error al limpiar fondo de pantalla", e)
-                withContext(Dispatchers.Main) { onResult(false) }
-            }
-        }
-    }
-
-    fun clearWallpaper(context: Context, onResult: (Boolean) -> Unit) {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                val wallpaperManager = WallpaperManager.getInstance(context)
-                wallpaperManager.clear()
-                withContext(Dispatchers.Main) { onResult(true) }
-            } catch (e: Exception) {
-                Log.e("WallpaperViewModel", "Error al restablecer fondo del sistema", e)
-                withContext(Dispatchers.Main) { onResult(false) }
+            val success = WallpaperBackupManager.restoreOriginalWallpaper(context)
+            withContext(Dispatchers.Main) {
+                onResult(success)
             }
         }
     }
 
     fun openSystemWallpaperPicker(context: Context) {
-        try {
-            val intent = Intent(Intent.ACTION_SET_WALLPAPER)
-            context.startActivity(Intent.createChooser(intent, "Seleccionar fondo de pantalla"))
-        } catch (e: Exception) {
-            Log.e("WallpaperViewModel", "Error abriendo el selector del sistema", e)
-        }
+        WallpaperBackupManager.openSystemWallpaperPicker(context)
     }
 
-    private fun drawableToBitmap(drawable: Drawable): Bitmap? {
-        if (drawable is BitmapDrawable && drawable.bitmap != null) {
-            return drawable.bitmap
-        }
-        return try {
-            val width = if (drawable.intrinsicWidth > 0) drawable.intrinsicWidth else 1080
-            val height = if (drawable.intrinsicHeight > 0) drawable.intrinsicHeight else 1920
-            val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-            val canvas = Canvas(bitmap)
-            drawable.setBounds(0, 0, canvas.width, canvas.height)
-            drawable.draw(canvas)
-            bitmap
-        } catch (e: Exception) {
-            null
-        }
-    }
-
-    fun onVideoSelected(uri: Uri, contentResolver: ContentResolver) {
+    fun onVideoSelected(context: Context, uri: Uri, contentResolver: ContentResolver) {
         try {
-            // Take persistable URI permission so WallpaperService can access video across reboots
             val flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
             contentResolver.takePersistableUriPermission(uri, flags)
         } catch (e: Exception) {
             Log.w("WallpaperViewModel", "Could not take persistable URI permission: ${e.message}")
         }
         preferences.saveVideoUri(uri)
+        detectVideoResolution(context, uri.toString())
+    }
+
+    fun downloadTikTokVideo(context: Context, tiktokUrl: String) {
+        viewModelScope.launch {
+            backupOriginalWallpaperIfNeeded(context)
+            val downloadedUri = TikTokDownloader.downloadTikTokVideo(context, tiktokUrl) { state ->
+                _downloadState.value = state
+            }
+            if (downloadedUri != null) {
+                preferences.saveVideoUri(downloadedUri)
+                detectVideoResolution(context, downloadedUri.toString())
+            }
+        }
+    }
+
+    fun resetDownloadState() {
+        _downloadState.value = DownloadState.Idle
     }
 
     fun onVolumeChanged(volume: Float) {
@@ -189,13 +177,7 @@ class WallpaperViewModel(
     }
 
     fun isServiceActiveWallpaper(context: Context): Boolean {
-        return try {
-            val wallpaperManager = WallpaperManager.getInstance(context)
-            val info = wallpaperManager.wallpaperInfo
-            info?.packageName == context.packageName && info?.serviceName == VideoWallpaperService::class.java.name
-        } catch (e: Exception) {
-            false
-        }
+        return WallpaperBackupManager.isServiceActiveWallpaper(context)
     }
 
     fun openWallpaperPicker(context: Context) {
@@ -213,10 +195,6 @@ class WallpaperViewModel(
         }
     }
 
-    companion object {
-        private const val ORIGINAL_WALLPAPER_FILENAME = "original_wallpaper.png"
-    }
-
     class Factory(private val preferences: WallpaperPreferences) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -227,4 +205,3 @@ class WallpaperViewModel(
         }
     }
 }
-

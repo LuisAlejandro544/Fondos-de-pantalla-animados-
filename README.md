@@ -1,18 +1,23 @@
 # Video Fondo (Video Wallpaper)
 
-**Video Fondo** es una aplicación para Android desarrollada con Kotlin y Jetpack Compose que permite establecer cualquier vídeo de la galería del dispositivo como fondo de pantalla animado (*Live Wallpaper*), con controles avanzados de audio y ajuste de pantalla.
+**Video Fondo** es una aplicación para Android desarrollada con Kotlin y Jetpack Compose que permite establecer cualquier vídeo de la galería del dispositivo o **descargado por enlace desde TikTok (sin marca de agua)** como fondo de pantalla animado (*Live Wallpaper*), con controles avanzados de audio, ajuste de pantalla y reducción inteligente de resolución para ahorro de batería.
 
 ---
 
 ## 🚀 Características Principales
 
 - **Vídeo de Galería como Fondo**: Selector con `PickVisualMedia` para elegir cualquier archivo de vídeo local.
+- **Descargador de TikTok Integrado**:
+  - Pega cualquier enlace público de TikTok (formatos cortos `vt.tiktok.com` o estándar).
+  - Descarga automática del vídeo **sin marca de agua** directamente en el almacenamiento interno de la app.
+  - Indicador de progreso en tiempo real y mensaje de estado.
+  - Aplicación automática del vídeo descargado como fondo animado con acceso instantáneo a todas las opciones de personalización.
 - **Control Inteligente de Audio**:
   - Interruptor de silencio (*Mute*).
   - Al silenciar, el control deslizable de volumen se posiciona automáticamente en 0%.
   - Al reactivar el sonido, se restaura suavemente el último nivel de volumen seleccionado.
 - **Modos de Ajuste de Pantalla**:
-  - **Recortar (*Crop*)**: Rena toda la pantalla manteniendo la proporción.
+  - **Recortar (*Crop*)**: Llena toda la pantalla manteniendo la proporción.
   - **Ajustar (*Fit*)**: Muestra el vídeo completo sin cortes.
   - **Llenar (*Stretch*)**: Estira el vídeo para cubrir los bordes.
 - **Respaldo y Restauración de Fondo Original**:
@@ -26,11 +31,14 @@
   - **Pausa Inmediata en Invisibilidad y Apagado de Pantalla**: Suspensión instantánea del decodificador NDK al apagar la pantalla o al abrir otra aplicación a pantalla completa.
   - **Decodificación Hardware Directa (NATIVE HEVC / H.264)**: Pasa los fotogramas directamente de la GPU al búfer de `ANativeWindow`.
   - **Desactivación de Subsistemas de Audio (AudioFlinger Bypass)**: Al silenciar el fondo, desactiva por completo los hilos de decodificación y mezcla de audio DSP.
+- **Detección de Resolución en Tiempo Real & Control Inteligente**:
+  - Detección automática en tiempo real de las dimensiones originales del vídeo (ancho, alto y orientación), tanto para vídeos locales como descargados de TikTok.
+  - Bloqueo de selecciones de resolución superiores al vídeo de origen para evitar reescalados innecesarios y consumo absurdo de GPU.
 - **Ajustes Avanzados & Calidad 4K (Control de Batería y Resolución)**:
   - Interruptor para activar/desactivar el **Motor Nativo C++/Rust NDK**.
   - Interruptor para **Ahorro Extremo de Batería** (reducción de consumo hasta un 60%).
   - Interruptor para **Filtro de Nitidez Perceptual NDK** (mantiene apariencia tipo 4K en pantallas móviles).
-  - Selector de resoluciones dinámicas: **Original (4K/HD)**, **1080p Inteligente (-45% batería)**, **720p Ecológico (-65% batería)** y **540p Máximo Ahorro**.
+  - Selector de resoluciones dinámicas: **Original (Nativa)**, **1080p Inteligente**, **720p Ecológico** y **540p Máximo Ahorro** (con deshabilitación automática de opciones no aptas).
 - **Respaldo y Gestión de Fondo de Pantalla**:
   - Respalda automáticamente el fondo estático previo en alta calidad.
   - Botón de **Restaurar fondo de pantalla estático respaldado** (con fallback automático a limpiar el live wallpaper de fábrica).
@@ -43,6 +51,7 @@
 - **Lenguaje**: Kotlin
 - **UI Framework**: Jetpack Compose (Material Design 3)
 - **Arquitectura**: MVVM con `StateFlow` y `SharedPreferences` persistentes
+- **Networking & Downloading**: `OkHttp3`, `JSONObject`, permisos de `INTERNET` para la extracción de vídeos de TikTok sin marca de agua.
 - **Multimedia**: Android `MediaPlayer` & `WallpaperService` (`SurfaceHolder`)
 - **Nativo**: C++ (`CMakeLists.txt`, `native-lib.cpp`) y Rust (`Cargo.toml`, `lib.rs`)
 

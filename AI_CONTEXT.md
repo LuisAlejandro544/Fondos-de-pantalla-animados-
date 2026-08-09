@@ -30,6 +30,16 @@ Proporcionar una aplicación Android moderna, ligera y estilizada que permita se
 3. **Restauración en un Clic**:
    - Se incluye el botón **Restaurar fondo de pantalla estático** para volver al fondo original en cualquier momento.
 
+## 🎵 Descargador de TikTok sin Marca de Agua
+1. **Módulo HTTP (`TikTokDownloader.kt`)**:
+   - Extrae automáticamente la URL del vídeo a partir de enlaces compartidos de TikTok (`vt.tiktok.com` o `www.tiktok.com/@...`).
+   - Consulta APIs de extracción sin marca de agua con OkHttp (TikWM API y fallback TikLyDown).
+   - Descarga el MP4 directamente a la memoria interna protegida (`context.filesDir`) y notifica el progreso mediante `StateFlow<DownloadState>`.
+2. **Componente de Interfaz (`TikTokDownloadCard.kt`)**:
+   - Campo de texto interactivo con botón de pegar portapapeles y botón de limpiar.
+   - Botón de descarga con indicador de progreso porcentual, estado de carga y barra de progreso.
+   - Integración automática con `WallpaperViewModel`: al completar la descarga, se asigna como vídeo activo, se activa el respaldo previo de fondo estático y se ejecuta `detectVideoResolution()` para ajustar las opciones de resolución (1080p, 720p, 540p).
+
 ## 💻 Integración Nativa NDK (C++ / Rust) & Control Térmico
 - `CMakeLists.txt` vincula la biblioteca `videowallpaper_native` con `android` (`ANativeWindow`) y `mediandk` (`NdkMediaCodec`).
 - **Prevención Térmica y Anti-Sobrecalentamiento**:
@@ -43,7 +53,10 @@ Proporcionar una aplicación Android moderna, ligera y estilizada que permita se
 - Opciones configurables en `WallpaperPreferences.kt`:
   - `useNativeEngine` (Boolean): Activa/desactiva la aceleración NDK C++.
   - `useBatterySaver` (Boolean): Activa/desactiva el modo de bajo consumo energético.
-  - `qualityResolutionIndex` (Int): Selecciona entre 0 (Original 4K/HD), 1 (1080p Inteligente), 2 (720p Eco) y 3 (540p Máx Batería).
+  - `qualityResolutionIndex` (Int): Selecciona entre 0 (Original Nativa), 1 (1080p Inteligente), 2 (720p Eco) y 3 (540p Máx Batería).
+- **Detección de Resolución & Deshabilitación de Opciones Mayores**:
+  - `WallpaperViewModel` extrae la resolución en tiempo real con `MediaMetadataRetriever`.
+  - Deshabilita los chips de resolución superiores al vídeo cargado (`enabled = false`), impidiendo reescalados innecesarios y garantizando fallback a la resolución original si se cambia de vídeo.
   - `hardwareSharpness` (Boolean): Filtro de conservación de nitidez perceptual en resolución reducida.
 
 ## 🚀 GitHub Actions CI/CD Pipelines
