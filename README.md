@@ -67,7 +67,7 @@ Configurado para activación manual (*manual trigger* / `workflow_dispatch`):
 Se activa automáticamente cuando se sube un archivo `.zip` a la carpeta `zips/`:
 - **Procesamiento de Código Completo**: Descarga y descomprime el código contenido en el archivo `.zip`.
 - **Sincronización Total (Incluyendo `.github`)**: Añade nuevos archivos, reemplaza código antiguo y actualiza/modifica acciones y workflows en la carpeta `.github` (conservando únicamente `.git` y `zips/`).
-- **Permisos Extendidos de Workflows**: Incluye los permisos `contents: write` y `workflows: write` para permitir la modificación o adición de GitHub Actions.
+- **Permisos Elevados**: Incluye los permisos `contents: write` y `actions: write` para permitir la modificación o adición de código y GitHub Actions.
 - **Búsqueda de Token en Secrets**: Busca tokens de GitHub entre las claves de Secrets (`GH_PAT`, `PAT_TOKEN`, `REPO_TOKEN`, `GITHUB_TOKEN`, `TOKEN`).
 - **Commit Automático**: Guarda y realiza un push de los cambios sincronizados a la rama principal.
 

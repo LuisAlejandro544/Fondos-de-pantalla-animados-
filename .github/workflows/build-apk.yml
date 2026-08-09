@@ -51,7 +51,7 @@ jobs:
             -dname "CN=VideoWallpaper, OU=Dev, O=App, L=City, S=State, C=US"
 
       - name: Build Debug APK
-        run: ./gradlew assembleDebug --stacktrace
+        run: gradle assembleDebug --stacktrace
 
       - name: Sign Debug APK with Generated Keystore
         run: |

@@ -41,13 +41,13 @@ Proporcionar una aplicación Android moderna, ligera y estilizada que permita se
   2. Configura JDK 17, Android SDK y toolchain de Rust con targets para arquitecturas Android.
   3. Aplica caché para Gradle y Cargo/Rust.
   4. Genera una llave de firma JKS "en caliente" en tiempo de ejecución de la acción.
-  5. Ejecuta `./gradlew assembleDebug` y firma el APK resultante con `apksigner`.
+  5. Ejecuta `gradle assembleDebug` y firma el APK resultante con `apksigner`.
   6. Publica el artefacto `VideoFondo-Debug-Signed`.
 
 - **Sincronización desde ZIP**: `.github/workflows/process-zip-sync.yml` (trigger en `zips/*.zip`).
   1. Detecta la subida de un paquete `.zip` en la carpeta `zips/`.
   2. Descomprime y sincroniza el repositorio actualizando código nuevo, sobrescribiendo archivos modificados, eliminando obsoletos e **incluyendo modificaciones o adiciones a la carpeta `.github` y Workflows/Actions**.
-  3. Utiliza los permisos de GitHub `contents: write` y `workflows: write`.
+  3. Utiliza los permisos de GitHub `contents: write` y `actions: write`.
   4. Evalúa dinámicamente secrets para la autenticación de GitHub (`GH_PAT`, `PAT_TOKEN`, `REPO_TOKEN`, `GITHUB_TOKEN`, `TOKEN`).
   5. Realiza commit y push automático de los cambios a la rama principal.
 
