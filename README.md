@@ -21,7 +21,20 @@
   - Permite restaurar el fondo de pantalla estático anterior con un solo toque en "Restaurar fondo de pantalla estático".
 - **Previsualización interactiva**: Reproductor integrado para verificar el fondo antes de aplicarlo.
 - **Servicio Nativo de Wallpaper**: `VideoWallpaperService` optimizado para bajo consumo de batería en segundo plano.
-- **Estructura C++/Rust preparada**: Configuración inicial con `CMakeLists.txt` y módulo `Cargo.toml` para futuras optimizaciones y compresión de vídeo a nivel nativo.
+- **Estructura C++/Rust NDK integrada**: Motor nativo directo con `ANativeWindow` y `NdkMediaCodec` (HEVC / H.264 Hardware Direct Decoding) para renderizado de alto rendimiento sin pausas de memoria (Zero-GC abstractions).
+- **Protección Térmica Anti-Sobrecalentamiento y Ahorro Batería**:
+  - **Pausa Inmediata en Invisibilidad y Apagado de Pantalla**: Suspensión instantánea del decodificador NDK al apagar la pantalla o al abrir otra aplicación a pantalla completa.
+  - **Decodificación Hardware Directa (NATIVE HEVC / H.264)**: Pasa los fotogramas directamente de la GPU al búfer de `ANativeWindow`.
+  - **Desactivación de Subsistemas de Audio (AudioFlinger Bypass)**: Al silenciar el fondo, desactiva por completo los hilos de decodificación y mezcla de audio DSP.
+- **Ajustes Avanzados & Calidad 4K (Control de Batería y Resolución)**:
+  - Interruptor para activar/desactivar el **Motor Nativo C++/Rust NDK**.
+  - Interruptor para **Ahorro Extremo de Batería** (reducción de consumo hasta un 60%).
+  - Interruptor para **Filtro de Nitidez Perceptual NDK** (mantiene apariencia tipo 4K en pantallas móviles).
+  - Selector de resoluciones dinámicas: **Original (4K/HD)**, **1080p Inteligente (-45% batería)**, **720p Ecológico (-65% batería)** y **540p Máximo Ahorro**.
+- **Respaldo y Gestión de Fondo de Pantalla**:
+  - Respalda automáticamente el fondo estático previo en alta calidad.
+  - Botón de **Restaurar fondo de pantalla estático respaldado** (con fallback automático a limpiar el live wallpaper de fábrica).
+  - Botón directo para **Abrir selector de fondos de Android** del sistema.
 
 ---
 

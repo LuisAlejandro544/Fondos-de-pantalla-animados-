@@ -83,24 +83,51 @@ class WallpaperViewModel(
     fun restoreOriginalWallpaper(context: Context, onResult: (Boolean) -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
             val file = File(context.filesDir, ORIGINAL_WALLPAPER_FILENAME)
-            if (!file.exists()) {
-                withContext(Dispatchers.Main) { onResult(false) }
-                return@launch
+            val wallpaperManager = WallpaperManager.getInstance(context)
+
+            if (file.exists()) {
+                try {
+                    val bitmap = BitmapFactory.decodeFile(file.absolutePath)
+                    if (bitmap != null) {
+                        wallpaperManager.setBitmap(bitmap)
+                        withContext(Dispatchers.Main) { onResult(true) }
+                        return@launch
+                    }
+                } catch (e: Exception) {
+                    Log.e("WallpaperViewModel", "Error al restaurar bitmap original", e)
+                }
             }
 
+            // Fallback: Clear live wallpaper service to return to system default wallpaper
             try {
-                val bitmap = BitmapFactory.decodeFile(file.absolutePath)
-                if (bitmap != null) {
-                    val wallpaperManager = WallpaperManager.getInstance(context)
-                    wallpaperManager.setBitmap(bitmap)
-                    withContext(Dispatchers.Main) { onResult(true) }
-                } else {
-                    withContext(Dispatchers.Main) { onResult(false) }
-                }
+                wallpaperManager.clear()
+                withContext(Dispatchers.Main) { onResult(true) }
             } catch (e: Exception) {
-                Log.e("WallpaperViewModel", "Error al restaurar fondo original", e)
+                Log.e("WallpaperViewModel", "Error al limpiar fondo de pantalla", e)
                 withContext(Dispatchers.Main) { onResult(false) }
             }
+        }
+    }
+
+    fun clearWallpaper(context: Context, onResult: (Boolean) -> Unit) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val wallpaperManager = WallpaperManager.getInstance(context)
+                wallpaperManager.clear()
+                withContext(Dispatchers.Main) { onResult(true) }
+            } catch (e: Exception) {
+                Log.e("WallpaperViewModel", "Error al restablecer fondo del sistema", e)
+                withContext(Dispatchers.Main) { onResult(false) }
+            }
+        }
+    }
+
+    fun openSystemWallpaperPicker(context: Context) {
+        try {
+            val intent = Intent(Intent.ACTION_SET_WALLPAPER)
+            context.startActivity(Intent.createChooser(intent, "Seleccionar fondo de pantalla"))
+        } catch (e: Exception) {
+            Log.e("WallpaperViewModel", "Error abriendo el selector del sistema", e)
         }
     }
 
@@ -143,6 +170,22 @@ class WallpaperViewModel(
 
     fun onScaleModeChanged(scaleMode: ScaleMode) {
         preferences.saveScaleMode(scaleMode)
+    }
+
+    fun onUseNativeEngineChanged(enabled: Boolean) {
+        preferences.saveUseNativeEngine(enabled)
+    }
+
+    fun onUseBatterySaverChanged(enabled: Boolean) {
+        preferences.saveUseBatterySaver(enabled)
+    }
+
+    fun onQualityResolutionIndexChanged(index: Int) {
+        preferences.saveQualityResolutionIndex(index)
+    }
+
+    fun onHardwareSharpnessChanged(enabled: Boolean) {
+        preferences.saveHardwareSharpness(enabled)
     }
 
     fun isServiceActiveWallpaper(context: Context): Boolean {

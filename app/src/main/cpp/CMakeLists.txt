@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.22.1)
 
 project("videowallpaper_native")
 
-# Configuración del motor nativo C++ y enlaces para Rust
+# Configuración del motor nativo C++ (NDK MediaCodec & ANativeWindow)
 add_library(
     videowallpaper_native
     SHARED
@@ -14,7 +14,19 @@ find_library(
     log
 )
 
+find_library(
+    android-lib
+    android
+)
+
+find_library(
+    mediandk-lib
+    mediandk
+)
+
 target_link_libraries(
     videowallpaper_native
     ${log-lib}
+    ${android-lib}
+    ${mediandk-lib}
 )

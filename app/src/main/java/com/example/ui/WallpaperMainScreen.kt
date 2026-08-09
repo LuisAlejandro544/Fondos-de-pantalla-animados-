@@ -63,6 +63,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.R
+import com.example.ui.components.AdvancedSettingsCard
 import com.example.ui.components.SoundControlsCard
 import com.example.ui.components.VideoPreviewCard
 
@@ -280,74 +281,111 @@ fun WallpaperMainScreen(
                 onScaleModeChanged = { viewModel.onScaleModeChanged(it) }
             )
 
-            AnimatedVisibility(
-                visible = hasOriginalBackup,
-                enter = fadeIn(),
-                exit = fadeOut()
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Advanced NDK & Battery / Resolution Settings Card
+            AdvancedSettingsCard(
+                config = config,
+                onUseNativeEngineChanged = { viewModel.onUseNativeEngineChanged(it) },
+                onUseBatterySaverChanged = { viewModel.onUseBatterySaverChanged(it) },
+                onQualityResolutionIndexChanged = { viewModel.onQualityResolutionIndexChanged(it) },
+                onHardwareSharpnessChanged = { viewModel.onHardwareSharpnessChanged(it) }
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Restore & System Wallpaper Management Card
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
             ) {
-                Column {
-                    Spacer(modifier = Modifier.height(20.dp))
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surface
+                Column(
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Text(
+                        text = "Restaurar o cambiar fondo",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Si deseas desactivar el vídeo animado o volver a un fondo estático de tu dispositivo:",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    // Button 1: Restore backed up original or clear live wallpaper
+                    Button(
+                        onClick = {
+                            viewModel.restoreOriginalWallpaper(context) { success ->
+                                if (success) {
+                                    isWallpaperActive = viewModel.isServiceActiveWallpaper(context)
+                                    Toast.makeText(
+                                        context,
+                                        "Fondo de pantalla estático restaurado con éxito",
+                                        Toast.LENGTH_LONG
+                                    ).show()
+                                } else {
+                                    Toast.makeText(
+                                        context,
+                                        "No se pudo restaurar el fondo original",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp)
+                            .testTag("restore_original_wallpaper_button"),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
                         )
                     ) {
-                        Column(
-                            modifier = Modifier.padding(16.dp)
-                        ) {
-                            Text(
-                                text = "Restaurar fondo anterior",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = "Si te arrepientes, puedes volver a colocar la imagen estática original de tu dispositivo.",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Spacer(modifier = Modifier.height(12.dp))
-                            OutlinedButton(
-                                onClick = {
-                                    viewModel.restoreOriginalWallpaper(context) { success ->
-                                        if (success) {
-                                            isWallpaperActive = viewModel.isServiceActiveWallpaper(context)
-                                            Toast.makeText(
-                                                context,
-                                                "Fondo de pantalla estático original restaurado",
-                                                Toast.LENGTH_LONG
-                                            ).show()
-                                        } else {
-                                            Toast.makeText(
-                                                context,
-                                                "No se pudo restaurar el fondo original",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-                                        }
-                                    }
-                                },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(48.dp)
-                                    .testTag("restore_original_wallpaper_button"),
-                                shape = RoundedCornerShape(12.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Restore,
-                                    contentDescription = "Restaurar fondo estático",
-                                    modifier = Modifier.size(20.dp)
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(
-                                    text = "Restaurar fondo de pantalla estático",
-                                    style = MaterialTheme.typography.labelLarge,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                        }
+                        Icon(
+                            imageVector = Icons.Default.Restore,
+                            contentDescription = "Restaurar fondo estático",
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = if (hasOriginalBackup) "Restaurar fondo original respaldado" else "Volver a fondo estático de fábrica",
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    // Button 2: Open System Wallpaper Chooser
+                    OutlinedButton(
+                        onClick = {
+                            viewModel.openSystemWallpaperPicker(context)
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp)
+                            .testTag("open_system_wallpaper_picker_button"),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Wallpaper,
+                            contentDescription = "Abrir selector del sistema",
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Abrir selector de fondos de Android",
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
             }

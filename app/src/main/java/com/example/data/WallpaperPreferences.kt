@@ -11,7 +11,11 @@ data class WallpaperConfig(
     val videoUri: String = "",
     val volume: Float = 0.0f, // Default muted for wallpaper
     val isMuted: Boolean = true,
-    val scaleMode: ScaleMode = ScaleMode.CROP
+    val scaleMode: ScaleMode = ScaleMode.CROP,
+    val useNativeEngine: Boolean = true,
+    val useBatterySaver: Boolean = true,
+    val qualityResolutionIndex: Int = 1, // 0 = 4K Original, 1 = 1080p Smart, 2 = 720p Eco, 3 = 540p Max Battery
+    val hardwareSharpness: Boolean = true
 )
 
 enum class ScaleMode {
@@ -44,7 +48,11 @@ class WallpaperPreferences(private val context: Context) {
             isMuted = prefs.getBoolean(KEY_IS_MUTED, true),
             scaleMode = runCatching {
                 ScaleMode.valueOf(prefs.getString(KEY_SCALE_MODE, ScaleMode.CROP.name) ?: ScaleMode.CROP.name)
-            }.getOrDefault(ScaleMode.CROP)
+            }.getOrDefault(ScaleMode.CROP),
+            useNativeEngine = prefs.getBoolean(KEY_USE_NATIVE_ENGINE, true),
+            useBatterySaver = prefs.getBoolean(KEY_USE_BATTERY_SAVER, true),
+            qualityResolutionIndex = prefs.getInt(KEY_QUALITY_RES_INDEX, 1),
+            hardwareSharpness = prefs.getBoolean(KEY_HW_SHARPNESS, true)
         )
     }
 
@@ -87,6 +95,26 @@ class WallpaperPreferences(private val context: Context) {
         _configFlow.value = loadConfig()
     }
 
+    fun saveUseNativeEngine(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_USE_NATIVE_ENGINE, enabled).apply()
+        _configFlow.value = loadConfig()
+    }
+
+    fun saveUseBatterySaver(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_USE_BATTERY_SAVER, enabled).apply()
+        _configFlow.value = loadConfig()
+    }
+
+    fun saveQualityResolutionIndex(index: Int) {
+        prefs.edit().putInt(KEY_QUALITY_RES_INDEX, index).apply()
+        _configFlow.value = loadConfig()
+    }
+
+    fun saveHardwareSharpness(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_HW_SHARPNESS, enabled).apply()
+        _configFlow.value = loadConfig()
+    }
+
     companion object {
         private const val PREFS_NAME = "video_wallpaper_prefs"
         const val KEY_VIDEO_URI = "key_video_uri"
@@ -94,7 +122,14 @@ class WallpaperPreferences(private val context: Context) {
         const val KEY_LAST_NON_ZERO_VOLUME = "key_last_non_zero_volume"
         const val KEY_IS_MUTED = "key_is_muted"
         const val KEY_SCALE_MODE = "key_scale_mode"
+        const val KEY_USE_NATIVE_ENGINE = "key_use_native_engine"
+        const val KEY_USE_BATTERY_SAVER = "key_use_battery_saver"
+        const val KEY_QUALITY_RES_INDEX = "key_quality_res_index"
+        const val KEY_HW_SHARPNESS = "key_hw_sharpness"
 
-        private val WATCHED_KEYS = setOf(KEY_VIDEO_URI, KEY_VOLUME, KEY_IS_MUTED, KEY_SCALE_MODE)
+        private val WATCHED_KEYS = setOf(
+            KEY_VIDEO_URI, KEY_VOLUME, KEY_IS_MUTED, KEY_SCALE_MODE,
+            KEY_USE_NATIVE_ENGINE, KEY_USE_BATTERY_SAVER, KEY_QUALITY_RES_INDEX, KEY_HW_SHARPNESS
+        )
     }
 }

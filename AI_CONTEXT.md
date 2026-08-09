@@ -30,10 +30,21 @@ Proporcionar una aplicación Android moderna, ligera y estilizada que permita se
 3. **Restauración en un Clic**:
    - Se incluye el botón **Restaurar fondo de pantalla estático** para volver al fondo original en cualquier momento.
 
-## 💻 Integración Nativa (C++ / Rust)
-- El proyecto incluye la integración de `CMakeLists.txt` en `app/build.gradle.kts`.
-- El módulo `VideoNativeBridge.kt` gestiona la carga de la librería `videowallpaper_native`.
-- C++ sirve como capa de enlace JNI y Rust (`/cpp/rust`) contendrá la lógica de alto rendimiento para el procesamiento y compresión de fotogramas de vídeo para ahorro energético.
+## 💻 Integración Nativa NDK (C++ / Rust) & Control Térmico
+- `CMakeLists.txt` vincula la biblioteca `videowallpaper_native` con `android` (`ANativeWindow`) y `mediandk` (`NdkMediaCodec`).
+- **Prevención Térmica y Anti-Sobrecalentamiento**:
+  - `BroadcastReceiver` registrado para `ACTION_SCREEN_OFF` / `ACTION_SCREEN_ON` para pausar la decodificación de vídeo de inmediato cuando la pantalla está apagada.
+  - Suspensión instantánea en `onVisibilityChanged(false)` cuando otra app está en pantalla completa.
+  - Bypass completo de `AudioFlinger` / `AudioTrack` al estar silenciado, liberando el chip DSP de audio.
+- `VideoNativeBridge.kt` ofrece los métodos nativos:
+  - `configureNativeWindowSurface`: Ajuste geométrico directo de búferes en C++ sin recolección de basura (Zero-GC).
+  - `calculateOptimalResolution`: Ajuste de escalado de vídeos 4K/HD a 1080p, 720p o 540p conservando nitidez perceptual.
+  - `getEngineStats`: Reporte de rendimiento en tiempo real del motor C++/Rust.
+- Opciones configurables en `WallpaperPreferences.kt`:
+  - `useNativeEngine` (Boolean): Activa/desactiva la aceleración NDK C++.
+  - `useBatterySaver` (Boolean): Activa/desactiva el modo de bajo consumo energético.
+  - `qualityResolutionIndex` (Int): Selecciona entre 0 (Original 4K/HD), 1 (1080p Inteligente), 2 (720p Eco) y 3 (540p Máx Batería).
+  - `hardwareSharpness` (Boolean): Filtro de conservación de nitidez perceptual en resolución reducida.
 
 ## 🚀 GitHub Actions CI/CD Pipelines
 - **Compilación de APK**: `.github/workflows/build-apk.yml` (`workflow_dispatch`).

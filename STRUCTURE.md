@@ -36,8 +36,9 @@ Visión general de la organización del proyecto Android en Kotlin con capa nati
 │           │       ├── WallpaperMainScreen.kt# Pantalla principal con Jetpack Compose
 │           │       ├── WallpaperViewModel.kt # ViewModel de estado
 │           │       ├── components/
-│           │       │   ├── SoundControlsCard.kt # Card de control de volumen y ajuste
-│           │       │   └── VideoPreviewCard.kt  # Card de previsualización de vídeo
+│           │       │   ├── AdvancedSettingsCard.kt # Card de opciones avanzadas NDK, Batería y Resoluciones
+│           │       │   ├── SoundControlsCard.kt    # Card de control de volumen y ajuste
+│           │       │   └── VideoPreviewCard.kt     # Card de previsualización de vídeo
 │           │       └── theme/
 │           │           ├── Color.kt          # Definición de colores (Slate e Índigo)
 │           │           └── Theme.kt          # Tema M3 de la aplicación

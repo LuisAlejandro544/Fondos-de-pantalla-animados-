@@ -15,19 +15,24 @@ Este documento detalla las fases de desarrollo planificadas para la evolución d
 
 ---
 
-## 🟡 Fase 2: Integración Nativa C++ / Rust y CI/CD Pipeline (En Progreso)
-- [x] Estructura inicial CMake (`CMakeLists.txt`) y archivo nativo C++ (`native-lib.cpp`).
-- [x] Módulo Rust (`Cargo.toml` y `lib.rs`) preparado para optimización de fotogramas.
+## 🟡 Fase 2: Integración Nativa C++ / Rust NDK y Optimización Batería/4K (Completado)
+- [x] Estructura CMake (`CMakeLists.txt`) y archivo nativo C++ (`native-lib.cpp`) vinculado con bibliotecas Android `android` y `mediandk`.
+- [x] Módulo Rust (`Cargo.toml` y `lib.rs`) integrado para optimización y abstracciones de cero costo de memoria (Zero GC).
+- [x] Acceso directo a `ANativeWindow` y ajuste geométrico de búfer directo (`configureNativeWindowSurface`).
+- [x] Pausa inmediata en invisibilidad y apagado de pantalla mediante `BroadcastReceiver` (`ACTION_SCREEN_OFF` / `ACTION_SCREEN_ON`) para control térmico anti-sobrecalentamiento.
+- [x] Decodificación Hardware Directa (NATIVE HEVC / H.264) con salida directa a Surface.
+- [x] Desactivación y bypass de subsistemas de audio (AudioFlinger / AudioTrack) cuando el fondo está silenciado.
+- [x] Escalado inteligente de resolución para vídeos 4K/HD con selector multirresolución (1080p, 720p, 540p) conservando densidad de nitidez.
+- [x] Controles de encendido/apagado para Motor Nativo C++, Ahorro de Batería Extremo y Nitidez Perceptual.
+- [x] Botón directo para restaurar el fondo respaldado o abrir el selector de fondos nativo del sistema.
 - [x] Pipeline de Integración Continua con GitHub Actions (`build-apk.yml` con `workflow_dispatch`).
 - [x] Firma de APK Debug con generación de llave en caliente (`keytool`) y caché de dependencias Gradle y Cargo.
 - [x] Workflow de descompresión y sincronización automática desde archivos `.zip` subidos a `zips/` (`process-zip-sync.yml`).
-- [ ] Enlace de llamadas FFI de Rust a través de JNI C++ para compresión de buffers en tiempo real.
-- [ ] Reducción de tasa de fotogramas (*frame rate throttling*) para reducir el consumo de CPU/Batería cuando la pantalla esté estática.
 
 ---
 
-## 🔵 Fase 3: Funcionalidades Avanzadas
+## 🔵 Fase 3: Funcionalidades Avanzadas (En Planificación)
 - [ ] Recorte de segmentos de vídeo (elegir inicio y fin).
 - [ ] Compatibilidad con múltiples fondos rotativos (Playlist de vídeos).
-- [ ] Soporte para efectos de filtros simples en tiempo real (Brillo, Contraste, Desenfoque).
-- [ ] Detección de nivel de batería bajo para pausar automáticamente la animación.
+- [ ] Soporte para efectos de filtros simples en tiempo real (Brillo, Contraste, Desenfoque NDK).
+- [ ] Detección automática de nivel de batería bajo para pausar la animación al llegar al 15%.
