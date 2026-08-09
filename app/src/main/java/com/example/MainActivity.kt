@@ -1,0 +1,30 @@
+package com.example
+
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.lifecycle.ViewModelProvider
+import com.example.data.WallpaperPreferences
+import com.example.ui.WallpaperMainScreen
+import com.example.ui.WallpaperViewModel
+import com.example.ui.theme.VideoWallpaperTheme
+
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+
+        val preferences = WallpaperPreferences(applicationContext)
+        val viewModel = ViewModelProvider(
+            this,
+            WallpaperViewModel.Factory(preferences)
+        )[WallpaperViewModel::class.java]
+
+        setContent {
+            VideoWallpaperTheme {
+                WallpaperMainScreen(viewModel = viewModel)
+            }
+        }
+    }
+}

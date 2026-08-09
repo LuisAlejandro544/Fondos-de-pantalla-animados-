@@ -1,0 +1,22 @@
+{
+  "appName": "Video Fondo",
+  "version": "1.0.0",
+  "features": {
+    "galleryVideoPicker": true,
+    "liveWallpaperEngine": true,
+    "volumeControl": true,
+    "muteToggle": true,
+    "scalingModes": ["CROP", "FIT", "STRETCH"]
+  },
+  "defaultSettings": {
+    "defaultVolume": 0.0,
+    "isMuted": true,
+    "defaultScaleMode": "CROP",
+    "loopVideo": true
+  },
+  "theme": {
+    "primaryColor": "#6366F1",
+    "darkNavyBackground": "#0F172A",
+    "surfaceColor": "#1E293B"
+  }
+}

@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Video Fondo</string>
+    <string name="wallpaper_service_label">Fondo de Pantalla de Vídeo</string>
+    <string name="wallpaper_description">Fondo de pantalla animado con vídeos de tu galería</string>
+</resources>

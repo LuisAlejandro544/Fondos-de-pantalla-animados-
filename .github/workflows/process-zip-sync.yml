@@ -1,0 +1,59 @@
+name: Process ZIP Code Sync
+
+on:
+  push:
+    paths:
+      - 'zips/*.zip'
+
+permissions:
+  contents: write
+  workflows: write
+
+jobs:
+  sync-zip-code:
+    name: Extract and Sync Code from ZIP
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GH_PAT || secrets.PAT_TOKEN || secrets.REPO_TOKEN || secrets.GITHUB_TOKEN || secrets.TOKEN }}
+
+      - name: Extract ZIP and Synchronize Repository Code
+        run: |
+          ZIP_FILE=$(ls -t zips/*.zip 2>/dev/null | head -n 1)
+          if [ -z "$ZIP_FILE" ]; then
+            echo "No se encontró ningún archivo .zip en la carpeta zips/"
+            exit 0
+          fi
+
+          echo "Procesando archivo ZIP: $ZIP_FILE"
+          
+          TEMP_DIR=$(mktemp -d)
+          unzip -o "$ZIP_FILE" -d "$TEMP_DIR"
+
+          # Sincronizar archivos: reemplaza el código viejo, añade nuevos archivos y elimina obsoletos.
+          # Permite actualizar la carpeta .github (Workflows y Actions) mientras preserva .git y zips/
+          rsync -av --delete \
+            --exclude='.git' \
+            --exclude='zips' \
+            "$TEMP_DIR/" ./
+
+          rm -rf "$TEMP_DIR"
+
+      - name: Configure Git User
+        run: |
+          git config --global user.name "GitHub Code Sync Bot"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Commit and Push Synchronized Code
+        run: |
+          git add -A
+          if git diff --staged --quiet; then
+            echo "No se detectaron cambios tras descompresión del ZIP."
+          else
+            git commit -m "chore(sync): actualización automática de código desde paquete ZIP"
+            git push
+          fi

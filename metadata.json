@@ -1,0 +1,6 @@
+{
+  "name": "Video Fondo",
+  "description": "Establece tus vídeos de la galería como fondo de pantalla animado con control de sonido y ajuste.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

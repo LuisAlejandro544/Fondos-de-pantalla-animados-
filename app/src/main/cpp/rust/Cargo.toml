@@ -1,0 +1,10 @@
+[package]
+name = "video_optimizer_rust"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["staticlib", "cdylib"]
+
+[dependencies]
+# FFI Bindings para C++ y Android JNI
