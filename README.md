@@ -11,6 +11,12 @@
   - Receptor en tiempo real (`Intent.ACTION_TIME_TICK`) que conmuta el vídeo activo exactamente cuando cambia el horario sin reinicios bruscos.
   - Asignación rápida con un toque desde la Galería de Fondos (botones "Día ☀️" y "Noche 🌙") o desde la tarjeta dedicada en Ajustes.
   - Indicador visual de estado que muestra el período activo actual y el vídeo en reproducción.
+- **Galería Independiente de Fondos con Presentación Animada (Pantalla Principal)**:
+  - Pantalla inicial directa al abrir la app con colección persistente de fondos de pantalla.
+  - **Presentación en Miniatura Animada**: Cada tarjeta de la galería cuenta con un reproductor en bucle silencioso (`VideoGalleryItemThumbnail`) de bajo consumo de RAM que muestra una vista previa en movimiento del vídeo.
+  - Botón directo **"[📹 Añadir Vídeo]"** ubicado en el encabezado superior para seleccionar o descargar nuevos vídeos al instante.
+  - Filtros para explorar fondos **Todos**, **Animados (Live Video)** o **Estáticos**.
+  - Tarjeta de aplicación rápida y gestión de eliminación de fondos guardados.
 - **Menú de Ajustes de la Aplicación (Pantalla Independiente)**:
   - Pantalla dedicada y completa de **Ajustes de la Aplicación** (`AppSettingsScreen`) en lugar de un cuadro emergente.
   - Acceso directo mediante el **icono de engranaje** ubicado en el encabezado de la Galería y en la pantalla de Ajustes.
@@ -21,14 +27,7 @@
     - **Azul Océano**: Tonalidades marítimas profundas con acentos cian brillantes.
     - **Verde Esmeralda**: Estilo bosque oscuro elegante con tonos verde esmeralda.
     - **Violeta Ciberpunk**: Atmósfera nocturna púrpura con destellos neón magenta.
-  - Acceso directo a los **Términos y Condiciones** desplegados en GitHub Pages.
-- **GitHub Action para GitHub Pages (Términos y Condiciones)**:
-  - Workflow automatizado `.github/workflows/deploy-pages.yml` que publica la página de Términos y Condiciones (`docs/index.html`).
-- **Galería Independiente de Fondos (Pantalla Principal de Inicio)**:
-  - Pantalla inicial directa al abrir la app con colección persistente de fondos de pantalla.
-  - Filtros para explorar fondos **Todos**, **Animados (Live Video)** o **Estáticos**.
-  - Tarjeta de aplicación rápida y gestión de eliminación de fondos guardados.
-  - Botón directo **"Ajustes"** para acceder al panel de configuración del motor.
+  - Acceso directo a los **Términos y Condiciones** alojados en GitHub Pages ([Ver Términos Oficiales](https://luisalejandro544.github.io/Fondos-de-pantalla-animados-/)).
 - **Navegación Fluida con Botón de Regreso**:
   - Transición limpia hacia la pantalla de **Ajustes y Motor**.
   - Botón superior de navegación **"Regresar a Galería"** para volver atrás instantáneamente sin barras inferiores invasivas.
@@ -40,11 +39,12 @@
   - Cero dependencia de Google Play Services ni paquetes propietarios de Google.
   - Preparado para distribución libre en plataformas como **Uptodown**.
 - **Vídeo de Galería como Fondo**: Selector con `PickVisualMedia` para elegir cualquier archivo de vídeo local.
-- **Descargador de TikTok Integrado**:
+- **Descargador de TikTok Integrado ("Poner link de TikTok")**:
+  - Opción destacada con diálogo modal desplegable en la sección "Añadir Nuevo Vídeo" de la Galería.
   - Pega cualquier enlace público de TikTok (formatos cortos `vt.tiktok.com` o estándar).
   - Descarga automática del vídeo **sin marca de agua** directamente en el almacenamiento interno de la app.
-  - Indicador de progreso en tiempo real y mensaje de estado.
-  - Aplicación automática e inclusión inmediata en la Galería de Fondos.
+  - Muestra una barra de carga e indicador de progreso porcentual en tiempo real durante la descarga.
+  - Al completarse la descarga, redirige automáticamente al usuario a la pantalla del editor para previsualizar y configurar el fondo animado.
 - **Control Inteligente de Audio**:
   - Interruptor de silencio (*Mute*).
   - Al silenciar, el control deslizable de volumen se posiciona automáticamente en 0%.
@@ -57,13 +57,18 @@
   - Respalda automáticamente la imagen de fondo estática que el usuario tenía antes de activar el fondo de vídeo.
   - Mantiene intacta únicamente la imagen original primaria, sin sobreescribirla si el usuario aplica varios vídeos seguidos.
   - Permite restaurar el fondo de pantalla estático anterior con un solo toque desde la pantalla de Ajustes o desde la Galería.
-- **Previsualización interactiva**: Reproductor integrado para verificar el fondo antes de aplicarlo.
+- **Previsualización interactiva y Selección Directa**:
+  - Al seleccionar un vídeo de la galería, se abre directamente en la pantalla de edición sin comprimirse previamente.
+  - La compresión de vídeo Rust sólo se ejecuta cuando el usuario presiona "ESTABLECER COMO FONDO".
 - **Servicio Nativo de Wallpaper**: `VideoWallpaperService` optimizado para bajo consumo de batería en segundo plano.
 - **Estructura C++/Rust NDK integrada**: Motor nativo directo con `ANativeWindow` y `NdkMediaCodec` (HEVC / H.264 Hardware Direct Decoding) para renderizado de alto rendimiento sin pausas de memoria (Zero-GC abstractions).
 - **Protección Térmica Anti-Sobrecalentamiento y Ahorro Batería**:
+  - **Pausa por Batería Baja (Ahorro +15%)**: Monitorea el estado de la batería mediante `BroadcastReceiver` (`ACTION_BATTERY_CHANGED`) y congela la animación cuando la carga es de 15% o menor (sin estar cargando), ahorrando un 15% extra de energía para emergencias. Se reanuda automáticamente al conectar el cargador.
   - **Pausa Inmediata en Invisibilidad y Apagado de Pantalla**: Suspensión instantánea del decodificador NDK al apagar la pantalla o al abrir otra aplicación a pantalla completa.
   - **Decodificación Hardware Directa (NATIVE HEVC / H.264)**: Pasa los fotogramas directamente de la GPU al búfer de `ANativeWindow`.
   - **Desactivación de Subsistemas de Audio (AudioFlinger Bypass)**: Al silenciar el fondo, desactiva por completo los hilos de decodificación y mezcla de audio DSP.
+- **Persistencia de Permisos de URIs Locales**:
+  - Solicita y conserva permisos persistentes de lectura (`takePersistableUriPermission`) para todos los archivos de vídeo seleccionados en la galería local, modo Día/Noche y biblioteca de fondos guardados, previniendo fallos de acceso tras reiniciar el dispositivo.
 - **Detección de Resolución en Tiempo Real & Control Inteligente**:
   - Detección automática en tiempo real de las dimensiones originales del vídeo (ancho, alto y orientación).
   - Bloqueo de selecciones de resolución superiores al vídeo de origen para evitar reescalados innecesarios y consumo absurdo de GPU.

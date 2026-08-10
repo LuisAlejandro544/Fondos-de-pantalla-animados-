@@ -108,7 +108,8 @@ private val THEME_OPTIONS = listOf(
 fun AppSettingsScreen(
     currentTheme: String,
     onThemeSelected: (String) -> Unit,
-    onBackClicked: () -> Unit
+    onBackClicked: () -> Unit,
+    onNavigateToEngineSettings: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
 
@@ -362,7 +363,7 @@ fun AppSettingsScreen(
                             try {
                                 val intent = Intent(
                                     Intent.ACTION_VIEW,
-                                    Uri.parse("https://github.com")
+                                    Uri.parse("https://luisalejandro544.github.io/Fondos-de-pantalla-animados-/")
                                 )
                                 context.startActivity(intent)
                             } catch (e: Exception) {
@@ -395,6 +396,30 @@ fun AppSettingsScreen(
                             contentDescription = null,
                             modifier = Modifier.size(16.dp)
                         )
+                    }
+
+                    if (onNavigateToEngineSettings != null) {
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        OutlinedButton(
+                            onClick = onNavigateToEngineSettings,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("engine_settings_button"),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Settings,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "Ajustes del Motor de Vídeo (Avanzado)",
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
                 }
             }

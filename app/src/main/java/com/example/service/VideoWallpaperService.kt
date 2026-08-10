@@ -27,6 +27,7 @@ class VideoWallpaperService : WallpaperService() {
         private lateinit var wallpaperPrefs: WallpaperPreferences
         private var currentConfig: WallpaperConfig? = null
         private var isScreenOn = true
+        private var isLowBattery = false
 
         private var currentlyPlayingUri: String? = null
 
@@ -53,6 +54,44 @@ class VideoWallpaperService : WallpaperService() {
         private val timeReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
                 checkAndRefreshDayNightVideo()
+            }
+        }
+
+        private val batteryReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                when (intent?.action) {
+                    Intent.ACTION_BATTERY_CHANGED -> {
+                        val level = intent.getIntExtra(android.os.BatteryManager.EXTRA_LEVEL, -1)
+                        val scale = intent.getIntExtra(android.os.BatteryManager.EXTRA_SCALE, -1)
+                        val pct = if (level >= 0 && scale > 0) (level * 100 / scale) else 100
+                        val status = intent.getIntExtra(android.os.BatteryManager.EXTRA_STATUS, -1)
+                        val isCharging = status == android.os.BatteryManager.BATTERY_STATUS_CHARGING ||
+                                status == android.os.BatteryManager.BATTERY_STATUS_FULL
+
+                        val lowBatteryDetected = pct <= 15 && !isCharging
+                        if (lowBatteryDetected != isLowBattery) {
+                            isLowBattery = lowBatteryDetected
+                            Log.i("VideoWallpaperService", "Estado de batería baja actualizado: isLowBattery=$isLowBattery ($pct%, Cargando: $isCharging)")
+                            val config = currentConfig ?: wallpaperPrefs.loadConfig()
+                            if (config.pauseOnLowBattery) {
+                                if (isLowBattery) {
+                                    Log.i("VideoWallpaperService", "Batería <= 15% -> Pausando reproducción de vídeo para ahorro adicional (+15%)")
+                                    pauseVideo()
+                                } else if (isVisible && isScreenOn) {
+                                    Log.i("VideoWallpaperService", "Batería recuperada (>15% o cargando) -> Reanudando reproducción")
+                                    resumeVideo()
+                                }
+                            }
+                        }
+                    }
+                    Intent.ACTION_POWER_CONNECTED -> {
+                        isLowBattery = false
+                        Log.i("VideoWallpaperService", "Dispositivo conectado a corriente -> Batería normal, reanudando")
+                        if (isVisible && isScreenOn) {
+                            resumeVideo()
+                        }
+                    }
+                }
             }
         }
 
@@ -90,12 +129,21 @@ class VideoWallpaperService : WallpaperService() {
                 addAction(Intent.ACTION_TIMEZONE_CHANGED)
             }
 
+            // Register battery state broadcast receiver for low battery energy saving (<= 15%)
+            val batteryFilter = IntentFilter().apply {
+                addAction(Intent.ACTION_BATTERY_CHANGED)
+                addAction(Intent.ACTION_POWER_CONNECTED)
+                addAction(Intent.ACTION_POWER_DISCONNECTED)
+            }
+
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 registerReceiver(screenReceiver, screenFilter, RECEIVER_NOT_EXPORTED)
                 registerReceiver(timeReceiver, timeFilter, RECEIVER_NOT_EXPORTED)
+                registerReceiver(batteryReceiver, batteryFilter, RECEIVER_NOT_EXPORTED)
             } else {
                 registerReceiver(screenReceiver, screenFilter)
                 registerReceiver(timeReceiver, timeFilter)
+                registerReceiver(batteryReceiver, batteryFilter)
             }
         }
 
@@ -135,6 +183,12 @@ class VideoWallpaperService : WallpaperService() {
 
         private fun resumeVideo() {
             try {
+                val config = currentConfig ?: wallpaperPrefs.loadConfig()
+                if (isLowBattery && config.pauseOnLowBattery) {
+                    Log.i("VideoWallpaperService", "Pausa por Batería Baja activa (<= 15%). Omitiendo reanudación.")
+                    return
+                }
+
                 mediaPlayer?.let { player ->
                     if (!player.isPlaying) {
                         player.start()
@@ -156,6 +210,7 @@ class VideoWallpaperService : WallpaperService() {
             try {
                 unregisterReceiver(screenReceiver)
                 unregisterReceiver(timeReceiver)
+                unregisterReceiver(batteryReceiver)
             } catch (e: Exception) {
                 Log.w("VideoWallpaperService", "Error al desregistrar receivers", e)
             }

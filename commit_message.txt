@@ -1,7 +1,9 @@
-feat: pantalla independiente de ajustes de app, términos de cero recopilación de datos y github action manual para github pages
+feat: opción modal 'Poner link de TikTok' en la Galería, navegación directa al editor y diseño limpio de cabecera nativa
 
-- Convertidos los Ajustes de la Aplicación en una pantalla completa e independiente (AppSettingsScreen.kt) en lugar de un cuadro modal.
-- Creado el workflow de GitHub Actions (.github/workflows/deploy-pages.yml) configurado con ejecución únicamente manual (workflow_dispatch) para publicar GitHub Pages.
-- Creada la página estática de Términos y Condiciones en docs/index.html enfocado en Política de Cero Recopilación de Datos (0% Data) y procesamiento 100% local.
-- Actualizada la navegación con estados explícitos (ScreenState: GALLERY, ENGINE_SETTINGS, APP_SETTINGS).
-- Actualizados los archivos de documentación (README.md, ROADMAP.md, AI_CONTEXT.md y STRUCTURE.md).
+- Rediseñado el encabezado principal de la Galería de Fondos (`WallpaperGalleryScreen`) para mantener un diseño nativo limpio y amplio, conservando únicamente el botón de engranaje de ajustes y eliminando botones redundantes de la barra superior.
+- Añadida la opción y botón "Poner link de TikTok" en la sección principal de Añadir Nuevo Vídeo de la Galería.
+- Creado el componente modal interactivo `TikTokDownloadDialog` con entrada de URL, pegar desde portapapeles y barra de progreso en tiempo real.
+- Configurada la navegación automática al editor de ajustes (`ENGINE_SETTINGS`) tras descargar un vídeo de TikTok.
+- Conservado el flujo de selección directa sin compresión previa y compresión diferida al establecer como fondo.
+- Mantenida la Pausa por Batería Baja (Ahorro 15%) y la persistencia de permisos de URIs locales.
+- Actualizada la documentación del proyecto (`AI_CONTEXT.md`, `README.md`, `ROADMAP.md`).

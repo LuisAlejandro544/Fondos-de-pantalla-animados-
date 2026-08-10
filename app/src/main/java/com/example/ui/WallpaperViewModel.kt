@@ -129,35 +129,37 @@ class WallpaperViewModel(
         WallpaperBackupManager.openSystemWallpaperPicker(context)
     }
 
-    // MANDATORY DEFAULT: Downscale video with Rust engine and preserve sharpness
-    fun onVideoSelected(context: Context, uri: Uri, contentResolver: ContentResolver) {
-        viewModelScope.launch {
+    private fun tryPersistUriPermission(contentResolver: ContentResolver?, uri: Uri) {
+        if (contentResolver != null && uri.scheme == ContentResolver.SCHEME_CONTENT) {
             try {
                 val flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
                 contentResolver.takePersistableUriPermission(uri, flags)
+                Log.i("WallpaperViewModel", "Permiso persistente de URI otorgado con éxito: $uri")
             } catch (e: Exception) {
-                Log.w("WallpaperViewModel", "Could not take persistable URI permission: ${e.message}")
+                Log.w("WallpaperViewModel", "No se pudo tomar permiso persistente de URI ($uri): ${e.message}")
             }
+        }
+    }
+
+    // MANDATORY DEFAULT: Downscale video with Rust engine and preserve sharpness
+    fun onVideoSelected(context: Context, uri: Uri, contentResolver: ContentResolver) {
+        viewModelScope.launch {
+            tryPersistUriPermission(contentResolver, uri)
 
             backupOriginalWallpaperIfNeeded(context)
 
-            // Execute Rust Video Downscaling & Sharpness Processing
-            val optimizedUri = RustVideoOptimizer.downscaleAndOptimizeVideo(context, uri) { state ->
-                _optimizationState.value = state
-            }
+            // Direct selection without initial compression
+            preferences.saveVideoUri(uri)
+            detectVideoResolution(context, uri.toString())
 
-            val finalUri = optimizedUri ?: uri
-            preferences.saveVideoUri(finalUri)
-            detectVideoResolution(context, finalUri.toString())
-
-            // Add to Wallpaper Gallery
+            // Add to Wallpaper Gallery as original selected video
             val wallpaperId = "wall_${System.currentTimeMillis()}"
             val newWallpaper = SavedWallpaper(
                 id = wallpaperId,
                 title = "Vídeo Galería (${System.currentTimeMillis() % 10000})",
-                uriString = finalUri.toString(),
+                uriString = uri.toString(),
                 isLiveVideo = true,
-                resolutionText = "720p Rust • Nitidez Nativa",
+                resolutionText = "Original",
                 fileSizeMB = 12.5f,
                 timestamp = System.currentTimeMillis(),
                 isCurrent = true
@@ -173,22 +175,17 @@ class WallpaperViewModel(
                 _downloadState.value = state
             }
             if (downloadedUri != null) {
-                // Mandatory Rust Downscale and Sharpness optimization
-                val optimizedUri = RustVideoOptimizer.downscaleAndOptimizeVideo(context, downloadedUri) { state ->
-                    _optimizationState.value = state
-                }
-
-                val finalUri = optimizedUri ?: downloadedUri
-                preferences.saveVideoUri(finalUri)
-                detectVideoResolution(context, finalUri.toString())
+                // Save raw downloaded video directly without initial compression
+                preferences.saveVideoUri(downloadedUri)
+                detectVideoResolution(context, downloadedUri.toString())
 
                 val wallpaperId = "tiktok_${System.currentTimeMillis()}"
                 val newWallpaper = SavedWallpaper(
                     id = wallpaperId,
                     title = "TikTok Animado (${System.currentTimeMillis() % 10000})",
-                    uriString = finalUri.toString(),
+                    uriString = downloadedUri.toString(),
                     isLiveVideo = true,
-                    resolutionText = "720p Rust • Nitidez Nativa",
+                    resolutionText = "Original TikTok",
                     fileSizeMB = 8.4f,
                     timestamp = System.currentTimeMillis(),
                     isCurrent = true
@@ -198,8 +195,9 @@ class WallpaperViewModel(
         }
     }
 
-    fun applySavedWallpaper(wallpaper: SavedWallpaper) {
+    fun applySavedWallpaper(wallpaper: SavedWallpaper, contentResolver: ContentResolver? = null) {
         val uri = Uri.parse(wallpaper.uriString)
+        tryPersistUriPermission(contentResolver, uri)
         preferences.saveVideoUri(uri)
         galleryRepository.setCurrentWallpaper(wallpaper.id)
     }
@@ -220,11 +218,15 @@ class WallpaperViewModel(
         preferences.saveIsDayNightEnabled(enabled)
     }
 
-    fun onDayVideoSelected(uriString: String) {
+    fun onDayVideoSelected(uriString: String, contentResolver: ContentResolver? = null) {
+        val uri = Uri.parse(uriString)
+        tryPersistUriPermission(contentResolver, uri)
         preferences.saveDayVideoUri(uriString)
     }
 
-    fun onNightVideoSelected(uriString: String) {
+    fun onNightVideoSelected(uriString: String, contentResolver: ContentResolver? = null) {
+        val uri = Uri.parse(uriString)
+        tryPersistUriPermission(contentResolver, uri)
         preferences.saveNightVideoUri(uriString)
     }
 
@@ -263,6 +265,10 @@ class WallpaperViewModel(
         preferences.saveUseBatterySaver(enabled)
     }
 
+    fun onPauseOnLowBatteryChanged(enabled: Boolean) {
+        preferences.savePauseOnLowBattery(enabled)
+    }
+
     fun onQualityResolutionIndexChanged(index: Int) {
         preferences.saveQualityResolutionIndex(index)
     }
@@ -284,17 +290,38 @@ class WallpaperViewModel(
     }
 
     fun openWallpaperPicker(context: Context) {
-        try {
-            backupOriginalWallpaperIfNeeded(context)
-            val intent = Intent(WallpaperManager.ACTION_CHANGE_LIVE_WALLPAPER).apply {
-                putExtra(
-                    WallpaperManager.EXTRA_LIVE_WALLPAPER_COMPONENT,
-                    ComponentName(context, VideoWallpaperService::class.java)
-                )
+        viewModelScope.launch {
+            try {
+                backupOriginalWallpaperIfNeeded(context)
+
+                val currentConfig = configState.value
+                val rawUriString = currentConfig.videoUri
+
+                if (rawUriString.isNotBlank() && currentConfig.useVideoCompression) {
+                    val rawUri = Uri.parse(rawUriString)
+                    val isAlreadyCompressed = rawUri.scheme == "file" && rawUri.path.orEmpty().contains("wallpaper_opt_")
+                    if (!isAlreadyCompressed) {
+                        Log.i("WallpaperViewModel", "Iniciando compresión previa al establecimiento de fondo: $rawUri")
+                        val optimizedUri = RustVideoOptimizer.downscaleAndOptimizeVideo(context, rawUri) { state ->
+                            _optimizationState.value = state
+                        }
+                        if (optimizedUri != null) {
+                            preferences.saveVideoUri(optimizedUri)
+                            Log.i("WallpaperViewModel", "Vídeo optimizado y guardado con éxito: $optimizedUri")
+                        }
+                    }
+                }
+
+                val intent = Intent(WallpaperManager.ACTION_CHANGE_LIVE_WALLPAPER).apply {
+                    putExtra(
+                        WallpaperManager.EXTRA_LIVE_WALLPAPER_COMPONENT,
+                        ComponentName(context, VideoWallpaperService::class.java)
+                    )
+                }
+                context.startActivity(intent)
+            } catch (e: Exception) {
+                Log.e("WallpaperViewModel", "Error opening live wallpaper chooser", e)
             }
-            context.startActivity(intent)
-        } catch (e: Exception) {
-            Log.e("WallpaperViewModel", "Error opening live wallpaper chooser", e)
         }
     }
 

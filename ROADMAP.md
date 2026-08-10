@@ -25,7 +25,7 @@ Este documento detalla las fases de desarrollo planificadas para la evolución d
 - [x] Detección en tiempo real de la resolución del vídeo (`MediaMetadataRetriever`) y bloqueo automático de opciones de resolución mayores a la fuente.
 - [x] Escalado inteligente de resolución para vídeos 4K/HD con selector multirresolución (1080p, 720p, 540p) conservando densidad de nitidez.
 - [x] Controles de encendido/apagado para Motor Nativo C++, Ahorro de Batería Máximo, Nitidez de Imagen y Compresión Inteligente de Archivo.
-- [x] Descargador de vídeos de TikTok sin marca de agua integrado por enlace público (soporte `vt.tiktok.com` y URLs largas).
+- [x] Descargador de vídeos de TikTok sin marca de agua integrado mediante el modal **"Poner link de TikTok"** en la sección "Añadir Nuevo Vídeo", con barra de progreso en tiempo real y redirección automática al editor al completar la descarga.
 - [x] Integración de descargas con detección de resolución automática, downscaling (1080p, 720p, 540p) y controles de audio.
 - [x] Botón directo para restaurar el fondo respaldado o abrir el selector de fondos nativo del sistema.
 - [x] **Galería Independiente de Fondos (`WallpaperGalleryScreen`)**: Pantalla inicial predeterminada con colección de fondos guardados, filtros (Todos, Animados, Estáticos) y eliminación.
@@ -36,7 +36,13 @@ Este documento detalla las fases de desarrollo planificadas para la evolución d
   - [x] Conmutación automática sin interrupciones mediante `BroadcastReceiver` (`ACTION_TIME_TICK` / `ACTION_TIME_CHANGED`).
   - [x] Componentes de interfaz dedicados (`DayNightWallpaperCard`) y asignación instantánea en la Galería (botones "Día ☀️" y "Noche 🌙").
 - [x] **Pantalla Completa de Ajustes de la Aplicación (`AppSettingsScreen`)**: Interfaz dedicada para personalización de temas visuales (Slate Navy, AMOLED, Material You, etc.) y términos legales en lugar de un modal emergente.
-- [x] **Despliegue de Términos y Condiciones en GitHub Pages**: Workflow automatizado (`deploy-pages.yml`) que publica la página HTML estática de términos y condiciones en GitHub Pages.
+- [x] **Despliegue de Términos y Condiciones en GitHub Pages**: Enlace oficial de Términos y Condiciones (https://luisalejandro544.github.io/Fondos-de-pantalla-animados-/) publicado mediante el workflow automatizado (`deploy-pages.yml`).
+- [x] **Acceso Directo a Añadir Vídeo en la Cabecera**: Reemplazado el botón superior de ajustes por el botón directo "[📹 Añadir Vídeo]" en la Galería de Fondos.
+- [x] **Presentaciones Animadas en la Galería (`VideoGalleryItemThumbnail`)**: Miniaturas en movimiento en bucle silencioso dentro de cada tarjeta de la galería para explorar visualmente sin adivinar nombres.
+- [x] **Previsualización Reactiva Instantánea**: Actualización en tiempo real del reproductor de previsualización al cambiar o seleccionar cualquier vídeo.
+- [x] **Selección Directa de Vídeo y Compresión Diferida**: Carga instantánea del vídeo original en la pantalla de edición (`ENGINE_SETTINGS`) al seleccionar de la galería sin comprimir previamente; la compresión de vídeo Rust solo se ejecuta al presionar "ESTABLECER COMO FONDO".
+- [x] **Detección y Pausa Automática por Batería Baja (Ahorro +15%)**: Congelado automático de la reproducción de vídeo al llegar al 15% o menos de carga (sin estar cargando) con reanudación al conectar el cargador.
+- [x] **Persistencia de Permisos de URIs Locales**: Otorgamiento y conservación persistente de permisos de lectura (`takePersistableUriPermission`) en la selección de vídeos locales, modo Día/Noche y Galería guardada.
 - [x] **Ajuste para Tiendas Alternativas (Uptodown)**: Eliminación total de dependencias de Google Play Services para distribución abierta e instalación directa.
 - [x] Pipeline de Integración Continua con GitHub Actions (`build-apk.yml` con `workflow_dispatch`).
 - [x] Firma de APK Debug con generación de llave en caliente (`keytool`) y caché de dependencias Gradle y Cargo.
@@ -48,4 +54,3 @@ Este documento detalla las fases de desarrollo planificadas para la evolución d
 - [ ] Recorte de segmentos de vídeo (elegir inicio y fin).
 - [ ] Compatibilidad con múltiples fondos rotativos (Playlist de vídeos).
 - [ ] Soporte para efectos de filtros simples en tiempo real (Brillo, Contraste, Desenfoque NDK).
-- [ ] Detección automática de nivel de batería bajo para pausar la animación al llegar al 15%.

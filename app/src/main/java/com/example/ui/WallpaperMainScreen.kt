@@ -51,8 +51,10 @@ import com.example.ui.components.OptimizationLoadingDialog
 import com.example.ui.components.RestoreWallpaperCard
 import com.example.ui.components.SoundControlsCard
 import com.example.ui.components.TikTokDownloadCard
+import com.example.ui.components.TikTokDownloadDialog
 import com.example.ui.components.VideoPreviewCard
 import com.example.ui.components.WallpaperStatusCard
+import com.example.ui.helpers.DownloadState
 import com.example.ui.helpers.OptimizationState
 
 enum class ScreenState {
@@ -75,6 +77,7 @@ fun WallpaperMainScreen(
 
     var isWallpaperActive by remember { mutableStateOf(false) }
     var currentScreen by remember { mutableStateOf(ScreenState.GALLERY) }
+    var showTikTokDialog by remember { mutableStateOf(false) }
 
     var pickForTarget by remember { mutableStateOf<String?>(null) } // "DAY" or "NIGHT"
 
@@ -85,6 +88,7 @@ fun WallpaperMainScreen(
         if (uri != null) {
             viewModel.backupOriginalWallpaperIfNeeded(context)
             viewModel.onVideoSelected(context, uri, context.contentResolver)
+            currentScreen = ScreenState.ENGINE_SETTINGS
         }
     }
 
@@ -95,11 +99,11 @@ fun WallpaperMainScreen(
         if (uri != null) {
             viewModel.backupOriginalWallpaperIfNeeded(context)
             if (pickForTarget == "DAY") {
-                viewModel.onDayVideoSelected(uri.toString())
+                viewModel.onDayVideoSelected(uri.toString(), context.contentResolver)
                 viewModel.onDayNightEnabledChanged(true)
                 Toast.makeText(context, "Vídeo de Día asignado con éxito", Toast.LENGTH_SHORT).show()
             } else if (pickForTarget == "NIGHT") {
-                viewModel.onNightVideoSelected(uri.toString())
+                viewModel.onNightVideoSelected(uri.toString(), context.contentResolver)
                 viewModel.onDayNightEnabledChanged(true)
                 Toast.makeText(context, "Vídeo de Noche asignado con éxito", Toast.LENGTH_SHORT).show()
             }
@@ -145,6 +149,29 @@ fun WallpaperMainScreen(
         )
     }
 
+    // TikTok Download Listener & Dialog
+    LaunchedEffect(downloadState) {
+        if (downloadState is DownloadState.Success) {
+            showTikTokDialog = false
+            Toast.makeText(context, "¡Vídeo descargado con éxito! Abriendo editor...", Toast.LENGTH_SHORT).show()
+            currentScreen = ScreenState.ENGINE_SETTINGS
+            viewModel.resetDownloadState()
+        }
+    }
+
+    if (showTikTokDialog) {
+        TikTokDownloadDialog(
+            downloadState = downloadState,
+            onDismissRequest = { showTikTokDialog = false },
+            onDownloadRequested = { url ->
+                viewModel.downloadTikTokVideo(context, url)
+            },
+            onResetDownloadState = {
+                viewModel.resetDownloadState()
+            }
+        )
+    }
+
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
@@ -178,7 +205,7 @@ fun WallpaperMainScreen(
                     savedWallpapers = savedWallpapers,
                     hasOriginalBackup = hasOriginalBackup,
                     onApplyWallpaper = { savedItem ->
-                        viewModel.applySavedWallpaper(savedItem)
+                        viewModel.applySavedWallpaper(savedItem, context.contentResolver)
                         viewModel.openWallpaperPicker(context)
                     },
                     onRestoreOriginalStaticWallpaper = {
@@ -201,6 +228,9 @@ fun WallpaperMainScreen(
                             PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.VideoOnly)
                         )
                     },
+                    onOpenTikTokDialog = {
+                        showTikTokDialog = true
+                    },
                     onNavigateToSettings = {
                         currentScreen = ScreenState.ENGINE_SETTINGS
                     },
@@ -208,11 +238,11 @@ fun WallpaperMainScreen(
                         currentScreen = ScreenState.APP_SETTINGS
                     },
                     onSetAsDayWallpaper = { savedItem ->
-                        viewModel.onDayVideoSelected(savedItem.uriString)
+                        viewModel.onDayVideoSelected(savedItem.uriString, context.contentResolver)
                         viewModel.onDayNightEnabledChanged(true)
                     },
                     onSetAsNightWallpaper = { savedItem ->
-                        viewModel.onNightVideoSelected(savedItem.uriString)
+                        viewModel.onNightVideoSelected(savedItem.uriString, context.contentResolver)
                         viewModel.onDayNightEnabledChanged(true)
                     }
                 )
@@ -225,6 +255,9 @@ fun WallpaperMainScreen(
                     },
                     onBackClicked = {
                         currentScreen = ScreenState.GALLERY
+                    },
+                    onNavigateToEngineSettings = {
+                        currentScreen = ScreenState.ENGINE_SETTINGS
                     }
                 )
             }
@@ -366,6 +399,7 @@ fun WallpaperMainScreen(
                     videoResolutionInfo = videoResolutionInfo,
                     onUseNativeEngineChanged = { viewModel.onUseNativeEngineChanged(it) },
                     onUseBatterySaverChanged = { viewModel.onUseBatterySaverChanged(it) },
+                    onPauseOnLowBatteryChanged = { viewModel.onPauseOnLowBatteryChanged(it) },
                     onQualityResolutionIndexChanged = { viewModel.onQualityResolutionIndexChanged(it) },
                     onHardwareSharpnessChanged = { viewModel.onHardwareSharpnessChanged(it) },
                     onUseVideoCompressionChanged = { viewModel.onUseVideoCompressionChanged(it) }

@@ -12,6 +12,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BatteryAlert
 import androidx.compose.material.icons.filled.BatterySaver
 import androidx.compose.material.icons.filled.Compress
 import androidx.compose.material.icons.filled.HighQuality
@@ -52,6 +53,7 @@ fun AdvancedSettingsCard(
     videoResolutionInfo: VideoResolutionInfo?,
     onUseNativeEngineChanged: (Boolean) -> Unit,
     onUseBatterySaverChanged: (Boolean) -> Unit,
+    onPauseOnLowBatteryChanged: (Boolean) -> Unit = {},
     onQualityResolutionIndexChanged: (Int) -> Unit,
     onHardwareSharpnessChanged: (Boolean) -> Unit,
     onUseVideoCompressionChanged: (Boolean) -> Unit,
@@ -137,6 +139,31 @@ fun AdvancedSettingsCard(
                         pros = listOf("Ahorra hasta un 60% de energía", "Mantiene la batería fría durante todo el día", "Aumenta las horas de uso de la batería"),
                         cons = listOf("El movimiento del vídeo se ve un poco menos acelerado"),
                         idealUseCases = "Recomendado para todos los días, especialmente si pasas mucho tiempo fuera de casa o la batería de tu teléfono dura poco."
+                    )
+                }
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Switch 2B: Pause on Low Battery
+            SettingSwitchRow(
+                icon = Icons.Default.BatteryAlert,
+                iconTint = MaterialTheme.colorScheme.error,
+                title = "Pausa por Batería Baja (Ahorro +15%)",
+                subtitle = "Congela la reproducción al caer al 15% de batería o menos para extender la carga crítica",
+                checked = config.pauseOnLowBattery,
+                onCheckedChange = onPauseOnLowBatteryChanged,
+                testTag = "pause_on_low_battery_switch",
+                onInfoClick = {
+                    selectedInfoOption = OptionInfoDetails(
+                        title = "Pausa por Batería Baja (Ahorro del 15%)",
+                        activatedEffect = "Detecta cuando el nivel de batería cae al 15% o menos (sin estar cargando) y congela la decodificación del vídeo, ahorrando un 15% adicional de batería hasta que conectes el cargador.",
+                        deactivatedEffect = "El vídeo continuará reproduciéndose normalmente incluso si la batería está al 15% o menos.",
+                        pros = listOf("Extiende la duración en situaciones de emergencia o batería baja", "Evita que el fondo agote el último tramo de carga", "Se reanuda automáticamente al conectar el cargador"),
+                        cons = listOf("El fondo de pantalla permanecerá estático/pausado mientras la batería esté al 15% o menos"),
+                        idealUseCases = "Recomendado para evitar sorpresas y asegurar que el teléfono mantenga carga suficiente cuando te queda poca batería."
                     )
                 }
             )

@@ -13,13 +13,14 @@ Proporcionar una aplicación Android moderna, ligera y estilizada que permita se
 ## 🖼️ Galería Independiente de Fondos y Navegación
 1. **Inicio Predeterminado**:
    - La aplicación inicia directamente en la **Galería de Fondos** (`WallpaperGalleryScreen`), mostrando todos los fondos de vídeo o estáticos guardados por el usuario.
-   - Incluye filtros interactivos (**Todos**, **Animados**, **Estáticos**) y un botón destacado **"Ajustes"** en la cabecera.
+   - Incluye filtros interactivos (**Todos**, **Animados**, **Estáticos**) y un acceso directo destacado **"[📹 Añadir Vídeo]"** en la cabecera superior para seleccionar o descargar nuevos vídeos sin rodeos.
+   - Presentación de miniatura animada (`VideoGalleryItemThumbnail`) en cada tarjeta de la galería que reproduce el vídeo en un bucle silencioso para que el usuario pueda explorar visualmente sin adivinar por nombre.
 2. **Navegación con Botón de Regreso**:
-   - Al pulsar "Ajustes", navega a la pantalla de **Ajustes y Motor** (`WallpaperMainScreen`).
+   - Al pulsar el icono de motor o engranaje, navega a la pantalla de **Ajustes y Motor** (`WallpaperMainScreen`) o de **Ajustes de la App** (`AppSettingsScreen`).
    - En la pantalla de Ajustes, un botón superior **"Regresar a Galería"** permite volver instantáneamente a la Galería sin barras inferiores fijas.
 3. **Pantalla Independiente de Ajustes de la Aplicación (`AppSettingsScreen`)**:
    - Acceso desde el icono de engranaje en la barra superior.
-   - Pantalla completa independiente para cambiar temas cromáticos y consultar términos y condiciones desplegados en GitHub Pages.
+   - Pantalla completa independiente para cambiar temas cromáticos y consultar términos y condiciones desplegados en GitHub Pages (`https://luisalejandro544.github.io/Fondos-de-pantalla-animados-/`).
 4. **Persistencia Local (`WallpaperGalleryRepository`)**:
    - Guarda los metadatos de los fondos seleccionados/descargados en un archivo JSON local (`wallpaper_gallery.json`) en la memoria interna de la app.
 
@@ -61,10 +62,12 @@ Proporcionar una aplicación Android moderna, ligera y estilizada que permita se
    - Extrae automáticamente la URL del vídeo a partir de enlaces compartidos de TikTok (`vt.tiktok.com` o `www.tiktok.com/@...`).
    - Consulta APIs de extracción sin marca de agua con OkHttp (TikWM API y fallback TikLyDown).
    - Descarga el MP4 directamente a la memoria interna protegida (`context.filesDir`) y notifica el progreso mediante `StateFlow<DownloadState>`.
-2. **Componente de Interfaz (`TikTokDownloadCard.kt`)**:
-   - Campo de texto interactivo con botón de pegar portapapeles y botón de limpiar.
-   - Botón de descarga con indicador de progreso porcentual, estado de carga y barra de progreso.
-   - Integración automática con `WallpaperViewModel`: al completar la descarga, se asigna como vídeo activo, se activa el respaldo previo de fondo estático y se ejecuta `detectVideoResolution()` para ajustar las opciones de resolución (1080p, 720p, 540p).
+2. **Componente de Interfaz Modal y Tarjeta (`TikTokDownloadDialog.kt` & `TikTokDownloadCard.kt`)**:
+   - Botón modal **"Poner link de TikTok"** integrado en la sección "Añadir Nuevo Vídeo" de la Galería.
+   - Diálogo desplegable modal con campo de texto interactivo, botón de pegar portapapeles y botón de limpiar.
+   - Muestra una barra de carga e indicador de progreso porcentual en tiempo real durante la descarga.
+   - Al finalizar la descarga, redirige automáticamente al usuario a la pantalla del editor de ajustes (`ENGINE_SETTINGS`) para previsualizar el vídeo descargado.
+   - Integración automática con `WallpaperViewModel`: al completar la descarga, se asigna como vídeo activo, se activa el respaldo previo de fondo estático y se ejecuta `detectVideoResolution()` para ajustar las opciones de resolución.
 
 ## 💻 Integración Nativa NDK (C++ / Rust) & Control Térmico
 - `CMakeLists.txt` vincula la biblioteca `videowallpaper_native` con `android` (`ANativeWindow`) y `mediandk` (`NdkMediaCodec`).
@@ -79,7 +82,17 @@ Proporcionar una aplicación Android moderna, ligera y estilizada que permita se
 - Opciones configurables en `WallpaperPreferences.kt`:
   - `useNativeEngine` (Boolean): Activa/desactiva la aceleración NDK C++.
   - `useBatterySaver` (Boolean): Activa/desactiva el modo de bajo consumo energético.
+  - `pauseOnLowBattery` (Boolean): Pausa automáticamente la reproducción del vídeo cuando la batería baja del 15% (sin estar cargando) para ahorrar un 15% adicional de energía.
   - `qualityResolutionIndex` (Int): Selecciona entre 0 (Original Nativa), 1 (1080p Inteligente), 2 (720p Eco) y 3 (540p Máx Batería).
+- **Flujo de Selección Directa y Compresión Diferida**:
+  - Al seleccionar un vídeo de la galería o TikTok, la aplicación carga directamente el archivo original sin comprimir y navega a la pantalla del editor (`ENGINE_SETTINGS`).
+  - La compresión y el filtro de nitidez Rust (`RustVideoOptimizer.downscaleAndOptimizeVideo`) ocurren únicamente cuando el usuario presiona "ESTABLECER COMO FONDO" (`openWallpaperPicker`).
+- **Detección de Nivel de Batería Bajo (Pausa por Batería Baja - Ahorro 15%)**:
+  - `VideoWallpaperService` escucha `Intent.ACTION_BATTERY_CHANGED`, `ACTION_POWER_CONNECTED` y `ACTION_POWER_DISCONNECTED`.
+  - Cuando el nivel de batería desciende a <= 15% y no está conectado a la corriente, congela el reproductor de vídeo para reservar energía hasta que se reconecte el cargador.
+- **Persistencia de Permisos de URIs Locales**:
+  - `WallpaperViewModel.tryPersistUriPermission` ejecuta `takePersistableUriPermission` con `FLAG_GRANT_READ_URI_PERMISSION` para vídeos de Galería, fondos guardados y vídeos de Día/Noche.
+  - Garantiza que la aplicación conserve el acceso de lectura persistente a los archivos de vídeo seleccionados incluso tras reiniciar el dispositivo.
 - **Detección de Resolución & Deshabilitación de Opciones Mayores**:
   - `WallpaperViewModel` extrae la resolución en tiempo real con `MediaMetadataRetriever`.
   - Deshabilita los chips de resolución superiores al vídeo cargado (`enabled = false`), impidiendo reescalados innecesarios y garantizando fallback a la resolución original si se cambia de vídeo.

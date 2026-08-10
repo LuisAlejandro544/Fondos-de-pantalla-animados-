@@ -141,98 +141,100 @@ fun VideoPreviewCard(
                 }
             } else {
                 // Active video preview box
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .aspectRatio(9f / 16f)
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(Color.Black)
-                        .clickable {
-                            isPlaying = !isPlaying
-                            mediaPlayerState?.let { mp ->
-                                try {
-                                    if (isPlaying) mp.start() else mp.pause()
-                                } catch (e: Exception) {
-                                    Log.e("VideoPreview", "Error toggling preview", e)
-                                }
-                            }
-                        }
-                ) {
-                    AndroidView(
-                        factory = { ctx ->
-                            SurfaceView(ctx).apply {
-                                holder.addCallback(object : SurfaceHolder.Callback {
-                                    override fun surfaceCreated(holder: SurfaceHolder) {
-                                        try {
-                                            val mp = MediaPlayer().apply {
-                                                setSurface(holder.surface)
-                                                setDataSource(ctx, Uri.parse(config.videoUri))
-                                                isLooping = true
-                                                setOnPreparedListener { player ->
-                                                    val vol = if (config.isMuted) 0.0f else config.volume
-                                                    player.setVolume(vol, vol)
-                                                    if (isPlaying) {
-                                                        player.start()
-                                                    }
-                                                }
-                                                prepareAsync()
-                                            }
-                                            mediaPlayerState = mp
-                                        } catch (e: Exception) {
-                                            Log.e("VideoPreviewCard", "Error loading preview", e)
-                                        }
-                                    }
-
-                                    override fun surfaceChanged(
-                                        holder: SurfaceHolder,
-                                        format: Int,
-                                        width: Int,
-                                        height: Int
-                                    ) {}
-
-                                    override fun surfaceDestroyed(holder: SurfaceHolder) {
-                                        mediaPlayerState?.release()
-                                        mediaPlayerState = null
-                                    }
-                                })
-                            }
-                        },
-                        modifier = Modifier.fillMaxSize()
-                    )
-
-                    // Volume indicator badge
+                androidx.compose.runtime.key(config.videoUri) {
                     Box(
                         modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(12.dp)
-                            .clip(CircleShape)
-                            .background(Color.Black.copy(alpha = 0.6f))
-                            .padding(8.dp)
+                            .fillMaxWidth()
+                            .aspectRatio(9f / 16f)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(Color.Black)
+                            .clickable {
+                                isPlaying = !isPlaying
+                                mediaPlayerState?.let { mp ->
+                                    try {
+                                        if (isPlaying) mp.start() else mp.pause()
+                                    } catch (e: Exception) {
+                                        Log.e("VideoPreview", "Error toggling preview", e)
+                                    }
+                                }
+                            }
                     ) {
-                        Icon(
-                            imageVector = if (config.isMuted || config.volume == 0f) Icons.Default.VolumeMute else Icons.Default.VolumeUp,
-                            contentDescription = "Estado de sonido",
-                            tint = Color.White,
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
+                        AndroidView(
+                            factory = { ctx ->
+                                SurfaceView(ctx).apply {
+                                    holder.addCallback(object : SurfaceHolder.Callback {
+                                        override fun surfaceCreated(holder: SurfaceHolder) {
+                                            try {
+                                                val mp = MediaPlayer().apply {
+                                                    setSurface(holder.surface)
+                                                    setDataSource(ctx, Uri.parse(config.videoUri))
+                                                    isLooping = true
+                                                    setOnPreparedListener { player ->
+                                                        val vol = if (config.isMuted) 0.0f else config.volume
+                                                        player.setVolume(vol, vol)
+                                                        if (isPlaying) {
+                                                            player.start()
+                                                        }
+                                                    }
+                                                    prepareAsync()
+                                                }
+                                                mediaPlayerState = mp
+                                            } catch (e: Exception) {
+                                                Log.e("VideoPreviewCard", "Error loading preview", e)
+                                            }
+                                        }
 
-                    // Play / Pause Overlay on tap
-                    if (!isPlaying) {
+                                        override fun surfaceChanged(
+                                            holder: SurfaceHolder,
+                                            format: Int,
+                                            width: Int,
+                                            height: Int
+                                        ) {}
+
+                                        override fun surfaceDestroyed(holder: SurfaceHolder) {
+                                            mediaPlayerState?.release()
+                                            mediaPlayerState = null
+                                        }
+                                    })
+                                }
+                            },
+                            modifier = Modifier.fillMaxSize()
+                        )
+
+                        // Volume indicator badge
                         Box(
                             modifier = Modifier
-                                .align(Alignment.Center)
-                                .size(56.dp)
+                                .align(Alignment.TopEnd)
+                                .padding(12.dp)
                                 .clip(CircleShape)
-                                .background(Color.Black.copy(alpha = 0.65f)),
-                            contentAlignment = Alignment.Center
+                                .background(Color.Black.copy(alpha = 0.6f))
+                                .padding(8.dp)
                         ) {
                             Icon(
-                                imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                                contentDescription = if (isPlaying) "Pausar" else "Reproducir",
+                                imageVector = if (config.isMuted || config.volume == 0f) Icons.Default.VolumeMute else Icons.Default.VolumeUp,
+                                contentDescription = "Estado de sonido",
                                 tint = Color.White,
-                                modifier = Modifier.size(32.dp)
+                                modifier = Modifier.size(18.dp)
                             )
+                        }
+
+                        // Play / Pause Overlay on tap
+                        if (!isPlaying) {
+                            Box(
+                                modifier = Modifier
+                                    .align(Alignment.Center)
+                                    .size(56.dp)
+                                    .clip(CircleShape)
+                                    .background(Color.Black.copy(alpha = 0.65f)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                                    contentDescription = if (isPlaying) "Pausar" else "Reproducir",
+                                    tint = Color.White,
+                                    modifier = Modifier.size(32.dp)
+                                )
+                            }
                         }
                     }
                 }

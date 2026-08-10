@@ -17,6 +17,7 @@ data class WallpaperConfig(
     val qualityResolutionIndex: Int = 1, // 0 = 4K Original, 1 = 1080p Smart, 2 = 720p Eco, 3 = 540p Max Battery
     val hardwareSharpness: Boolean = true,
     val useVideoCompression: Boolean = true,
+    val pauseOnLowBattery: Boolean = true, // Pausa automática por batería baja (≤15%)
     val appTheme: String = "SLATE_INDIGO",
     val isDayNightEnabled: Boolean = false,
     val dayVideoUri: String = "",
@@ -61,6 +62,7 @@ class WallpaperPreferences(private val context: Context) {
             qualityResolutionIndex = prefs.getInt(KEY_QUALITY_RES_INDEX, 1),
             hardwareSharpness = prefs.getBoolean(KEY_HW_SHARPNESS, true),
             useVideoCompression = prefs.getBoolean(KEY_USE_VIDEO_COMPRESSION, true),
+            pauseOnLowBattery = prefs.getBoolean(KEY_PAUSE_ON_LOW_BATTERY, true),
             appTheme = prefs.getString(KEY_APP_THEME, "SLATE_INDIGO") ?: "SLATE_INDIGO",
             isDayNightEnabled = prefs.getBoolean(KEY_IS_DAY_NIGHT_ENABLED, false),
             dayVideoUri = prefs.getString(KEY_DAY_VIDEO_URI, "") ?: "",
@@ -169,6 +171,11 @@ class WallpaperPreferences(private val context: Context) {
         _configFlow.value = loadConfig()
     }
 
+    fun savePauseOnLowBattery(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_PAUSE_ON_LOW_BATTERY, enabled).apply()
+        _configFlow.value = loadConfig()
+    }
+
     fun saveAppTheme(theme: String) {
         prefs.edit().putString(KEY_APP_THEME, theme).apply()
         _configFlow.value = loadConfig()
@@ -186,6 +193,7 @@ class WallpaperPreferences(private val context: Context) {
         const val KEY_QUALITY_RES_INDEX = "key_quality_res_index"
         const val KEY_HW_SHARPNESS = "key_hw_sharpness"
         const val KEY_USE_VIDEO_COMPRESSION = "key_use_video_compression"
+        const val KEY_PAUSE_ON_LOW_BATTERY = "key_pause_on_low_battery"
         const val KEY_APP_THEME = "key_app_theme"
         const val KEY_IS_DAY_NIGHT_ENABLED = "key_is_day_night_enabled"
         const val KEY_DAY_VIDEO_URI = "key_day_video_uri"
@@ -196,9 +204,9 @@ class WallpaperPreferences(private val context: Context) {
         private val WATCHED_KEYS = setOf(
             KEY_VIDEO_URI, KEY_VOLUME, KEY_IS_MUTED, KEY_SCALE_MODE,
             KEY_USE_NATIVE_ENGINE, KEY_USE_BATTERY_SAVER, KEY_QUALITY_RES_INDEX,
-            KEY_HW_SHARPNESS, KEY_USE_VIDEO_COMPRESSION, KEY_APP_THEME,
-            KEY_IS_DAY_NIGHT_ENABLED, KEY_DAY_VIDEO_URI, KEY_NIGHT_VIDEO_URI,
-            KEY_DAY_START_HOUR, KEY_NIGHT_START_HOUR
+            KEY_HW_SHARPNESS, KEY_USE_VIDEO_COMPRESSION, KEY_PAUSE_ON_LOW_BATTERY,
+            KEY_APP_THEME, KEY_IS_DAY_NIGHT_ENABLED, KEY_DAY_VIDEO_URI,
+            KEY_NIGHT_VIDEO_URI, KEY_DAY_START_HOUR, KEY_NIGHT_START_HOUR
         )
     }
 }
