@@ -35,6 +35,8 @@ Este documento detalla las fases de desarrollo planificadas para la evolución d
   - [x] Selección dual de vídeos para día y noche con horario personalizable (predeterminado 06:00 - 18:00 h / 18:00 - 06:00 h).
   - [x] Conmutación automática sin interrupciones mediante `BroadcastReceiver` (`ACTION_TIME_TICK` / `ACTION_TIME_CHANGED`).
   - [x] Componentes de interfaz dedicados (`DayNightWallpaperCard`) y asignación instantánea en la Galería (botones "Día ☀️" y "Noche 🌙").
+- [x] **Pantalla Completa de Ajustes de la Aplicación (`AppSettingsScreen`)**: Interfaz dedicada para personalización de temas visuales (Slate Navy, AMOLED, Material You, etc.) y términos legales en lugar de un modal emergente.
+- [x] **Despliegue de Términos y Condiciones en GitHub Pages**: Workflow automatizado (`deploy-pages.yml`) que publica la página HTML estática de términos y condiciones en GitHub Pages.
 - [x] **Ajuste para Tiendas Alternativas (Uptodown)**: Eliminación total de dependencias de Google Play Services para distribución abierta e instalación directa.
 - [x] Pipeline de Integración Continua con GitHub Actions (`build-apk.yml` con `workflow_dispatch`).
 - [x] Firma de APK Debug con generación de llave en caliente (`keytool`) y caché de dependencias Gradle y Cargo.

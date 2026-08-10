@@ -7,7 +7,10 @@ Visión general de la organización del proyecto Android en Kotlin con capa nati
 ├── .github/
 │   └── workflows/
 │       ├── build-apk.yml                     # Workflow de GitHub Actions para compilar APK firmado
+│       ├── deploy-pages.yml                  # Workflow de GitHub Actions para desplegar Términos en GitHub Pages
 │       └── process-zip-sync.yml              # Workflow para descompresión y sincronización de código desde ZIP
+├── docs/
+│   └── index.html                            # Página de Términos y Condiciones para GitHub Pages
 ├── app/
 │   ├── build.gradle.kts                      # Configuración del módulo de la app y CMake
 │   └── src/
@@ -31,6 +34,7 @@ Visión general de la organización del proyecto Android en Kotlin con capa nati
 │           │   │   ├── WallpaperGalleryRepository.kt # Persistencia local JSON de la Galería
 │           │   │   └── WallpaperPreferences.kt # Persistencia local de configuración
 │           │   ├── ui/
+│           │   │   ├── AppSettingsScreen.kt  # Pantalla independiente de Ajustes de la App y Temas
 │           │   │   ├── WallpaperGalleryScreen.kt # Pantalla principal de inicio: Galería de Fondos
 │           │   │   ├── WallpaperMainScreen.kt# Pantalla de Ajustes y Motor con navegación de regreso
 │           │   │   ├── WallpaperViewModel.kt # ViewModel modular de gestión de estado

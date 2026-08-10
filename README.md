@@ -11,7 +11,8 @@
   - Receptor en tiempo real (`Intent.ACTION_TIME_TICK`) que conmuta el vídeo activo exactamente cuando cambia el horario sin reinicios bruscos.
   - Asignación rápida con un toque desde la Galería de Fondos (botones "Día ☀️" y "Noche 🌙") o desde la tarjeta dedicada en Ajustes.
   - Indicador visual de estado que muestra el período activo actual y el vídeo en reproducción.
-- **Menú de Ajustes e Icono de Engranaje (Personalización de Temas de Color)**:
+- **Menú de Ajustes de la Aplicación (Pantalla Independiente)**:
+  - Pantalla dedicada y completa de **Ajustes de la Aplicación** (`AppSettingsScreen`) en lugar de un cuadro emergente.
   - Acceso directo mediante el **icono de engranaje** ubicado en el encabezado de la Galería y en la pantalla de Ajustes.
   - Cambio de tema de color en tiempo real con persistencia automática en las preferencias de la app:
     - **Slate & Índigo (Original)**: Tono elegante predeterminado Slate Navy e índigo.
@@ -20,6 +21,9 @@
     - **Azul Océano**: Tonalidades marítimas profundas con acentos cian brillantes.
     - **Verde Esmeralda**: Estilo bosque oscuro elegante con tonos verde esmeralda.
     - **Violeta Ciberpunk**: Atmósfera nocturna púrpura con destellos neón magenta.
+  - Acceso directo a los **Términos y Condiciones** desplegados en GitHub Pages.
+- **GitHub Action para GitHub Pages (Términos y Condiciones)**:
+  - Workflow automatizado `.github/workflows/deploy-pages.yml` que publica la página de Términos y Condiciones (`docs/index.html`).
 - **Galería Independiente de Fondos (Pantalla Principal de Inicio)**:
   - Pantalla inicial directa al abrir la app con colección persistente de fondos de pantalla.
   - Filtros para explorar fondos **Todos**, **Animados (Live Video)** o **Estáticos**.

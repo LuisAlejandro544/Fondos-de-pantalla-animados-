@@ -1,0 +1,7 @@
+feat: pantalla independiente de ajustes de app, términos de cero recopilación de datos y github action manual para github pages
+
+- Convertidos los Ajustes de la Aplicación en una pantalla completa e independiente (AppSettingsScreen.kt) en lugar de un cuadro modal.
+- Creado el workflow de GitHub Actions (.github/workflows/deploy-pages.yml) configurado con ejecución únicamente manual (workflow_dispatch) para publicar GitHub Pages.
+- Creada la página estática de Términos y Condiciones en docs/index.html enfocado en Política de Cero Recopilación de Datos (0% Data) y procesamiento 100% local.
+- Actualizada la navegación con estados explícitos (ScreenState: GALLERY, ENGINE_SETTINGS, APP_SETTINGS).
+- Actualizados los archivos de documentación (README.md, ROADMAP.md, AI_CONTEXT.md y STRUCTURE.md).

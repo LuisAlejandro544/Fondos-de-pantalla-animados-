@@ -55,6 +55,12 @@ import com.example.ui.components.VideoPreviewCard
 import com.example.ui.components.WallpaperStatusCard
 import com.example.ui.helpers.OptimizationState
 
+enum class ScreenState {
+    GALLERY,
+    ENGINE_SETTINGS,
+    APP_SETTINGS
+}
+
 @Composable
 fun WallpaperMainScreen(
     viewModel: WallpaperViewModel
@@ -68,9 +74,7 @@ fun WallpaperMainScreen(
     val savedWallpapers by viewModel.savedWallpapers.collectAsState()
 
     var isWallpaperActive by remember { mutableStateOf(false) }
-    // First screen is Gallery by default
-    var showGallery by remember { mutableStateOf(true) }
-    var showSettingsDialog by remember { mutableStateOf(false) }
+    var currentScreen by remember { mutableStateOf(ScreenState.GALLERY) }
 
     var pickForTarget by remember { mutableStateOf<String?>(null) } // "DAY" or "NIGHT"
 
@@ -147,7 +151,7 @@ fun WallpaperMainScreen(
             .background(MaterialTheme.colorScheme.background),
         containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
-            if (!showGallery) {
+            if (currentScreen == ScreenState.ENGINE_SETTINGS) {
                 ApplyWallpaperBottomBar(
                     hasVideoSelected = config.videoUri.isNotBlank(),
                     onApplyClicked = {
@@ -168,89 +172,100 @@ fun WallpaperMainScreen(
             }
         }
     ) { innerPadding ->
-        if (showGallery) {
-            // Screen 1: Wallpaper Gallery (Default First Screen)
-            WallpaperGalleryScreen(
-                savedWallpapers = savedWallpapers,
-                hasOriginalBackup = hasOriginalBackup,
-                onApplyWallpaper = { savedItem ->
-                    viewModel.applySavedWallpaper(savedItem)
-                    viewModel.openWallpaperPicker(context)
-                },
-                onRestoreOriginalStaticWallpaper = {
-                    viewModel.restoreOriginalWallpaper(context) { success ->
-                        if (success) {
-                            isWallpaperActive = viewModel.isServiceActiveWallpaper(context)
-                            Toast.makeText(
-                                context,
-                                "Fondo estático original restaurado correctamente",
-                                Toast.LENGTH_SHORT
-                            ).show()
+        when (currentScreen) {
+            ScreenState.GALLERY -> {
+                WallpaperGalleryScreen(
+                    savedWallpapers = savedWallpapers,
+                    hasOriginalBackup = hasOriginalBackup,
+                    onApplyWallpaper = { savedItem ->
+                        viewModel.applySavedWallpaper(savedItem)
+                        viewModel.openWallpaperPicker(context)
+                    },
+                    onRestoreOriginalStaticWallpaper = {
+                        viewModel.restoreOriginalWallpaper(context) { success ->
+                            if (success) {
+                                isWallpaperActive = viewModel.isServiceActiveWallpaper(context)
+                                Toast.makeText(
+                                    context,
+                                    "Fondo estático original restaurado correctamente",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        }
+                    },
+                    onDeleteWallpaper = { id ->
+                        viewModel.deleteSavedWallpaper(id)
+                    },
+                    onOpenGalleryPicker = {
+                        videoPickerLauncher.launch(
+                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.VideoOnly)
+                        )
+                    },
+                    onNavigateToSettings = {
+                        currentScreen = ScreenState.ENGINE_SETTINGS
+                    },
+                    onOpenAppSettings = {
+                        currentScreen = ScreenState.APP_SETTINGS
+                    },
+                    onSetAsDayWallpaper = { savedItem ->
+                        viewModel.onDayVideoSelected(savedItem.uriString)
+                        viewModel.onDayNightEnabledChanged(true)
+                    },
+                    onSetAsNightWallpaper = { savedItem ->
+                        viewModel.onNightVideoSelected(savedItem.uriString)
+                        viewModel.onDayNightEnabledChanged(true)
+                    }
+                )
+            }
+            ScreenState.APP_SETTINGS -> {
+                AppSettingsScreen(
+                    currentTheme = config.appTheme,
+                    onThemeSelected = { newTheme ->
+                        viewModel.onAppThemeChanged(newTheme)
+                    },
+                    onBackClicked = {
+                        currentScreen = ScreenState.GALLERY
+                    }
+                )
+            }
+            ScreenState.ENGINE_SETTINGS -> {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding)
+                        .statusBarsPadding()
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = 20.dp, vertical = 12.dp)
+                ) {
+                    // Back to Gallery Button Row
+                    androidx.compose.foundation.layout.Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        OutlinedButton(
+                            onClick = { currentScreen = ScreenState.GALLERY },
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.testTag("back_to_gallery_button")
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Regresar a la Galería",
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "Regresar a Galería",
+                                fontWeight = FontWeight.Bold
+                            )
                         }
                     }
-                },
-                onDeleteWallpaper = { id ->
-                    viewModel.deleteSavedWallpaper(id)
-                },
-                onOpenGalleryPicker = {
-                    videoPickerLauncher.launch(
-                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.VideoOnly)
-                    )
-                },
-                onNavigateToSettings = {
-                    showGallery = false
-                },
-                onOpenAppSettings = {
-                    showSettingsDialog = true
-                },
-                onSetAsDayWallpaper = { savedItem ->
-                    viewModel.onDayVideoSelected(savedItem.uriString)
-                    viewModel.onDayNightEnabledChanged(true)
-                },
-                onSetAsNightWallpaper = { savedItem ->
-                    viewModel.onNightVideoSelected(savedItem.uriString)
-                    viewModel.onDayNightEnabledChanged(true)
-                }
-            )
-        } else {
-            // Screen 2: Settings & NDK Engine ("Ajustes y Motor")
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-                    .statusBarsPadding()
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 20.dp, vertical = 12.dp)
-            ) {
-                // Back to Gallery Button Row
-                androidx.compose.foundation.layout.Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    OutlinedButton(
-                        onClick = { showGallery = true },
-                        shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier.testTag("back_to_gallery_button")
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Regresar a la Galería",
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "Regresar a Galería",
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                }
 
-                // Header Bar
-                MainHeaderBar(
-                    onOpenSettings = { showSettingsDialog = true }
-                )
+                    // Header Bar
+                    MainHeaderBar(
+                        onOpenSettings = { currentScreen = ScreenState.APP_SETTINGS }
+                    )
 
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -387,18 +402,7 @@ fun WallpaperMainScreen(
                 Spacer(modifier = Modifier.height(28.dp))
             }
         }
-
-        if (showSettingsDialog) {
-            AppSettingsDialog(
-                currentTheme = config.appTheme,
-                onThemeSelected = { newTheme ->
-                    viewModel.onAppThemeChanged(newTheme)
-                },
-                onDismissRequest = {
-                    showSettingsDialog = false
-                }
-            )
-        }
     }
+}
 }
 

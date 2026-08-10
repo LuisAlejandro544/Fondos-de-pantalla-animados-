@@ -17,7 +17,10 @@ Proporcionar una aplicación Android moderna, ligera y estilizada que permita se
 2. **Navegación con Botón de Regreso**:
    - Al pulsar "Ajustes", navega a la pantalla de **Ajustes y Motor** (`WallpaperMainScreen`).
    - En la pantalla de Ajustes, un botón superior **"Regresar a Galería"** permite volver instantáneamente a la Galería sin barras inferiores fijas.
-3. **Persistencia Local (`WallpaperGalleryRepository`)**:
+3. **Pantalla Independiente de Ajustes de la Aplicación (`AppSettingsScreen`)**:
+   - Acceso desde el icono de engranaje en la barra superior.
+   - Pantalla completa independiente para cambiar temas cromáticos y consultar términos y condiciones desplegados en GitHub Pages.
+4. **Persistencia Local (`WallpaperGalleryRepository`)**:
    - Guarda los metadatos de los fondos seleccionados/descargados en un archivo JSON local (`wallpaper_gallery.json`) en la memoria interna de la app.
 
 ## ☀️🌙 Modo Fondo Dinámico Día / Noche Automático
