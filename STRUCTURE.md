@@ -38,6 +38,7 @@ Visión general de la organización del proyecto Android en Kotlin con capa nati
 │           │   │   ├── components/
 │           │   │   │   ├── AdvancedSettingsCard.kt # Card modular de opciones avanzadas NDK y Batería
 │           │   │   │   ├── ApplyWallpaperBottomBar.kt # Barra inferior de acción para aplicar fondo
+│           │   │   │   ├── DayNightWallpaperCard.kt # Card modular para modo de fondo dinámico Día / Noche
 │           │   │   │   ├── EngineStatusCard.kt   # Insignia de estado en vivo del motor NDK
 │           │   │   │   ├── MainHeaderBar.kt      # Encabezado principal con marca y logo
 │           │   │   │   ├── OptimizationLoadingDialog.kt # Diálogo de progreso de reducción en Rust

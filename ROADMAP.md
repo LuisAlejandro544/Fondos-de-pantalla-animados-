@@ -31,6 +31,10 @@ Este documento detalla las fases de desarrollo planificadas para la evolución d
 - [x] **Galería Independiente de Fondos (`WallpaperGalleryScreen`)**: Pantalla inicial predeterminada con colección de fondos guardados, filtros (Todos, Animados, Estáticos) y eliminación.
 - [x] **Navegación Directa con Botón de Regreso**: Transición a la pantalla de Ajustes y Motor con botón de regreso "Regresar a Galería" sin barra inferior invasiva.
 - [x] **Motor NDK Rust de Downscaling (`RustVideoOptimizer`)**: Reducción permanente automática de resolución a 720p con preservación de nitidez nativa perceptual (Lanczos / Unsharp Mask).
+- [x] **Modo Fondo Dinámico Día / Noche Automático**:
+  - [x] Selección dual de vídeos para día y noche con horario personalizable (predeterminado 06:00 - 18:00 h / 18:00 - 06:00 h).
+  - [x] Conmutación automática sin interrupciones mediante `BroadcastReceiver` (`ACTION_TIME_TICK` / `ACTION_TIME_CHANGED`).
+  - [x] Componentes de interfaz dedicados (`DayNightWallpaperCard`) y asignación instantánea en la Galería (botones "Día ☀️" y "Noche 🌙").
 - [x] **Ajuste para Tiendas Alternativas (Uptodown)**: Eliminación total de dependencias de Google Play Services para distribución abierta e instalación directa.
 - [x] Pipeline de Integración Continua con GitHub Actions (`build-apk.yml` con `workflow_dispatch`).
 - [x] Firma de APK Debug con generación de llave en caliente (`keytool`) y caché de dependencias Gradle y Cargo.

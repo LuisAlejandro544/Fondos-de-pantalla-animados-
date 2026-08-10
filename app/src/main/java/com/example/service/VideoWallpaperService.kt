@@ -28,6 +28,8 @@ class VideoWallpaperService : WallpaperService() {
         private var currentConfig: WallpaperConfig? = null
         private var isScreenOn = true
 
+        private var currentlyPlayingUri: String? = null
+
         private val screenReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
                 when (intent?.action) {
@@ -40,9 +42,27 @@ class VideoWallpaperService : WallpaperService() {
                         isScreenOn = true
                         Log.i("VideoWallpaperService", "Pantalla encendida -> Reanudando si es visible")
                         if (isVisible) {
+                            checkAndRefreshDayNightVideo()
                             resumeVideo()
                         }
                     }
+                }
+            }
+        }
+
+        private val timeReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                checkAndRefreshDayNightVideo()
+            }
+        }
+
+        private fun checkAndRefreshDayNightVideo() {
+            val config = currentConfig ?: wallpaperPrefs.loadConfig()
+            if (config.isDayNightEnabled) {
+                val targetUri = wallpaperPrefs.getActiveVideoUriForTime(config)
+                if (targetUri != currentlyPlayingUri && targetUri.isNotBlank()) {
+                    Log.i("VideoWallpaperService", "Cambio automático Día/Noche detectado ($targetUri). Actualizando fondo.")
+                    surfaceHolder?.let { playVideo(it) }
                 }
             }
         }
@@ -57,15 +77,25 @@ class VideoWallpaperService : WallpaperService() {
             prefs.registerOnSharedPreferenceChangeListener(this)
 
             // Register screen off / on broadcast receiver for thermal & battery control
-            val filter = IntentFilter().apply {
+            val screenFilter = IntentFilter().apply {
                 addAction(Intent.ACTION_SCREEN_OFF)
                 addAction(Intent.ACTION_SCREEN_ON)
                 addAction(Intent.ACTION_USER_PRESENT)
             }
+
+            // Register time tick broadcast receiver for automatic Day/Night dynamic transitions
+            val timeFilter = IntentFilter().apply {
+                addAction(Intent.ACTION_TIME_TICK)
+                addAction(Intent.ACTION_TIME_CHANGED)
+                addAction(Intent.ACTION_TIMEZONE_CHANGED)
+            }
+
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                registerReceiver(screenReceiver, filter, RECEIVER_NOT_EXPORTED)
+                registerReceiver(screenReceiver, screenFilter, RECEIVER_NOT_EXPORTED)
+                registerReceiver(timeReceiver, timeFilter, RECEIVER_NOT_EXPORTED)
             } else {
-                registerReceiver(screenReceiver, filter)
+                registerReceiver(screenReceiver, screenFilter)
+                registerReceiver(timeReceiver, timeFilter)
             }
         }
 
@@ -125,8 +155,9 @@ class VideoWallpaperService : WallpaperService() {
             super.onDestroy()
             try {
                 unregisterReceiver(screenReceiver)
+                unregisterReceiver(timeReceiver)
             } catch (e: Exception) {
-                Log.w("VideoWallpaperService", "Error al desregistrar receiver de pantalla", e)
+                Log.w("VideoWallpaperService", "Error al desregistrar receivers", e)
             }
             val prefs = applicationContext.getSharedPreferences("video_wallpaper_prefs", MODE_PRIVATE)
             prefs.unregisterOnSharedPreferenceChangeListener(this)
@@ -138,8 +169,11 @@ class VideoWallpaperService : WallpaperService() {
             val oldConfig = currentConfig
             currentConfig = newConfig
 
-            if (oldConfig?.videoUri != newConfig.videoUri) {
-                // Video changed, reload player
+            val oldActiveUri = oldConfig?.let { wallpaperPrefs.getActiveVideoUriForTime(it) } ?: ""
+            val newActiveUri = wallpaperPrefs.getActiveVideoUriForTime(newConfig)
+
+            if (oldActiveUri != newActiveUri || currentlyPlayingUri != newActiveUri) {
+                // Active Video URI changed (e.g., Day/Night toggled or new video assigned), reload player
                 surfaceHolder?.let { playVideo(it) }
             } else {
                 // Sound, scale, resolution, or NDK settings changed
@@ -171,13 +205,17 @@ class VideoWallpaperService : WallpaperService() {
             releasePlayer()
 
             val config = currentConfig ?: wallpaperPrefs.loadConfig()
-            if (config.videoUri.isBlank()) {
-                Log.d("VideoWallpaper", "No video URI set yet.")
+            val targetUriString = wallpaperPrefs.getActiveVideoUriForTime(config)
+
+            if (targetUriString.isBlank()) {
+                Log.d("VideoWallpaper", "No active video URI set.")
                 return
             }
 
+            currentlyPlayingUri = targetUriString
+
             try {
-                val uri = Uri.parse(config.videoUri)
+                val uri = Uri.parse(targetUriString)
 
                 // Native ANativeWindow + NdkMediaCodec configuration if native engine is enabled
                 if (config.useNativeEngine && com.example.native.VideoNativeBridge.isNativeReady()) {

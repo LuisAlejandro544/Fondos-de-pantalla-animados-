@@ -20,6 +20,19 @@ Proporcionar una aplicación Android moderna, ligera y estilizada que permita se
 3. **Persistencia Local (`WallpaperGalleryRepository`)**:
    - Guarda los metadatos de los fondos seleccionados/descargados en un archivo JSON local (`wallpaper_gallery.json`) en la memoria interna de la app.
 
+## ☀️🌙 Modo Fondo Dinámico Día / Noche Automático
+1. **Detección por Hora del Sistema**:
+   - `WallpaperPreferences` evalúa la hora del dispositivo (`Calendar.HOUR_OF_DAY`).
+   - Período de Día por defecto: `06:00` a `18:00`. Período de Noche: `18:00` a `06:00`.
+2. **Receptor de Cambio de Tiempo (`Intent.ACTION_TIME_TICK`)**:
+   - `VideoWallpaperService` escucha latidos de tiempo del sistema (`ACTION_TIME_TICK`, `ACTION_TIME_CHANGED`).
+   - Conmuta automáticamente y de forma imperceptible la reproducción entre el vídeo de Día (`dayVideoUri`) y el vídeo de Noche (`nightVideoUri`) al cruzar el umbral horario.
+3. **Gestión en Interfaz (`DayNightWallpaperCard`)**:
+   - Selector global para activar/desactivar el modo.
+   - Banner de estado en vivo indicando la hora actual y qué vídeo está reproduciéndose.
+   - Tarjetas dedicadas con botones de selección independiente para vídeo de Día y de Noche.
+   - Asignación directa con un toque en los fondos de la Galería mediante los botones **Día ☀️** y **Noche 🌙**.
+
 ## ⚙️ Reglas de Comportamiento del Slider de Sonido
 1. **Pulsar Silenciar / Interruptor**:
    - `isMuted = true`

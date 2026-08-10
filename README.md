@@ -6,6 +6,11 @@
 
 ## 🚀 Características Principales
 
+- **Modo Fondo Dinámico Día / Noche Automático**:
+  - Cambio automático de fondo animado según la hora del sistema (Día: 06:00 - 18:00 h / Noche: 18:00 - 06:00 h).
+  - Receptor en tiempo real (`Intent.ACTION_TIME_TICK`) que conmuta el vídeo activo exactamente cuando cambia el horario sin reinicios bruscos.
+  - Asignación rápida con un toque desde la Galería de Fondos (botones "Día ☀️" y "Noche 🌙") o desde la tarjeta dedicada en Ajustes.
+  - Indicador visual de estado que muestra el período activo actual y el vídeo en reproducción.
 - **Menú de Ajustes e Icono de Engranaje (Personalización de Temas de Color)**:
   - Acceso directo mediante el **icono de engranaje** ubicado en el encabezado de la Galería y en la pantalla de Ajustes.
   - Cambio de tema de color en tiempo real con persistencia automática en las preferencias de la app:

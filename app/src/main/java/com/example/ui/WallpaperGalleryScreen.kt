@@ -27,11 +27,13 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.HighQuality
 import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.NightsStay
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.VideoLibrary
 import androidx.compose.material.icons.filled.Wallpaper
+import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -73,7 +75,9 @@ fun WallpaperGalleryScreen(
     onDeleteWallpaper: (String) -> Unit,
     onOpenGalleryPicker: () -> Unit,
     onNavigateToSettings: () -> Unit,
-    onOpenAppSettings: () -> Unit
+    onOpenAppSettings: () -> Unit,
+    onSetAsDayWallpaper: ((SavedWallpaper) -> Unit)? = null,
+    onSetAsNightWallpaper: ((SavedWallpaper) -> Unit)? = null
 ) {
     val context = LocalContext.current
     var selectedFilter by remember { mutableStateOf("ALL") } // ALL, LIVE, STATIC
@@ -351,6 +355,26 @@ fun WallpaperGalleryScreen(
                         },
                         onDeleteClicked = {
                             onDeleteWallpaper(item.id)
+                        },
+                        onSetAsDayClicked = onSetAsDayWallpaper?.let { callback ->
+                            {
+                                callback(item)
+                                Toast.makeText(
+                                    context,
+                                    "Vídeo asignado como Fondo de Día (06:00 - 18:00)",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        },
+                        onSetAsNightClicked = onSetAsNightWallpaper?.let { callback ->
+                            {
+                                callback(item)
+                                Toast.makeText(
+                                    context,
+                                    "Vídeo asignado como Fondo de Noche (18:00 - 06:00)",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
                         }
                     )
                 }
@@ -364,7 +388,9 @@ fun SavedWallpaperCard(
     wallpaper: SavedWallpaper,
     dateText: String,
     onApplyClicked: () -> Unit,
-    onDeleteClicked: () -> Unit
+    onDeleteClicked: () -> Unit,
+    onSetAsDayClicked: (() -> Unit)? = null,
+    onSetAsNightClicked: (() -> Unit)? = null
 ) {
     Card(
         modifier = Modifier
@@ -511,6 +537,50 @@ fun SavedWallpaperCard(
             }
 
             Spacer(modifier = Modifier.height(14.dp))
+
+            // Day / Night Quick Assignment Row
+            if (onSetAsDayClicked != null || onSetAsNightClicked != null) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 10.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    if (onSetAsDayClicked != null) {
+                        OutlinedButton(
+                            onClick = onSetAsDayClicked,
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(10.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.WbSunny,
+                                contentDescription = null,
+                                tint = Color(0xFFFF8F00),
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Día ☀️", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+
+                    if (onSetAsNightClicked != null) {
+                        OutlinedButton(
+                            onClick = onSetAsNightClicked,
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(10.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.NightsStay,
+                                contentDescription = null,
+                                tint = Color(0xFF7C4DFF),
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Noche 🌙", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+            }
 
             // Action: Volver a ponérsela / Aplicar como Fondo
             Button(

@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.dp
 import com.example.ui.components.AdvancedSettingsCard
 import com.example.ui.components.AppSettingsDialog
 import com.example.ui.components.ApplyWallpaperBottomBar
+import com.example.ui.components.DayNightWallpaperCard
 import com.example.ui.components.MainHeaderBar
 import com.example.ui.components.OptimizationLoadingDialog
 import com.example.ui.components.RestoreWallpaperCard
@@ -71,6 +72,8 @@ fun WallpaperMainScreen(
     var showGallery by remember { mutableStateOf(true) }
     var showSettingsDialog by remember { mutableStateOf(false) }
 
+    var pickForTarget by remember { mutableStateOf<String?>(null) } // "DAY" or "NIGHT"
+
     // Video Gallery Picker Launcher
     val videoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
@@ -78,6 +81,24 @@ fun WallpaperMainScreen(
         if (uri != null) {
             viewModel.backupOriginalWallpaperIfNeeded(context)
             viewModel.onVideoSelected(context, uri, context.contentResolver)
+        }
+    }
+
+    // Day/Night Specific Video Picker Launcher
+    val dayNightVideoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            viewModel.backupOriginalWallpaperIfNeeded(context)
+            if (pickForTarget == "DAY") {
+                viewModel.onDayVideoSelected(uri.toString())
+                viewModel.onDayNightEnabledChanged(true)
+                Toast.makeText(context, "Vídeo de Día asignado con éxito", Toast.LENGTH_SHORT).show()
+            } else if (pickForTarget == "NIGHT") {
+                viewModel.onNightVideoSelected(uri.toString())
+                viewModel.onDayNightEnabledChanged(true)
+                Toast.makeText(context, "Vídeo de Noche asignado con éxito", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -181,6 +202,14 @@ fun WallpaperMainScreen(
                 },
                 onOpenAppSettings = {
                     showSettingsDialog = true
+                },
+                onSetAsDayWallpaper = { savedItem ->
+                    viewModel.onDayVideoSelected(savedItem.uriString)
+                    viewModel.onDayNightEnabledChanged(true)
+                },
+                onSetAsNightWallpaper = { savedItem ->
+                    viewModel.onNightVideoSelected(savedItem.uriString)
+                    viewModel.onDayNightEnabledChanged(true)
                 }
             )
         } else {
@@ -277,6 +306,28 @@ fun WallpaperMainScreen(
                     config = config,
                     onSelectVideoClick = {
                         videoPickerLauncher.launch(
+                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.VideoOnly)
+                        )
+                    }
+                )
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // Day / Night Dynamic Wallpaper Mode Card
+                DayNightWallpaperCard(
+                    config = config,
+                    onDayNightToggle = { enabled ->
+                        viewModel.onDayNightEnabledChanged(enabled)
+                    },
+                    onSelectDayVideoClicked = {
+                        pickForTarget = "DAY"
+                        dayNightVideoPickerLauncher.launch(
+                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.VideoOnly)
+                        )
+                    },
+                    onSelectNightVideoClicked = {
+                        pickForTarget = "NIGHT"
+                        dayNightVideoPickerLauncher.launch(
                             PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.VideoOnly)
                         )
                     }

@@ -1,0 +1,29 @@
+===================================================================
+LOG DE INTEGRACIÓN DE FUNCIONALIDADES - VIDEO FONDO
+===================================================================
+
+[NUEVA INTEGRACIÓN]: MODO FONDO DINÁMICO DÍA / NOCHE AUTOMÁTICO
+-------------------------------------------------------------------
+Fecha: Agosto 2026
+Resumen:
+Se ha implementado el modo de fondo dinámico Día/Noche que conmuta automáticamente
+entre dos fondos animados distintos en función de la hora real del dispositivo.
+
+Detalles de la implementación:
+1. Persistencia y Configuración (WallpaperPreferences.kt):
+   - Campos: isDayNightEnabled, dayVideoUri, nightVideoUri, dayStartHour (06:00), nightStartHour (18:00).
+   - Lógica getActiveVideoUriForTime(): evalúa la hora del sistema y devuelve el URI correspondiente según el período.
+
+2. Servicio de Fondo en Vivo (VideoWallpaperService.kt):
+   - BroadcastReceiver registrado para Intent.ACTION_TIME_TICK, Intent.ACTION_TIME_CHANGED e Intent.ACTION_TIMEZONE_CHANGED.
+   - Evaluación en tiempo real cada minuto o cambio de hora para recargar imperceptiblemente el reproductor MediaPlayer si conmuta la franja horaria.
+
+3. ViewModel y UI (WallpaperViewModel.kt / WallpaperMainScreen.kt):
+   - Integración de funciones para activar/desactivar el modo Día/Noche y guardar URIs individuales.
+   - Componente modular DayNightWallpaperCard con switch global, banner informativo de estado en vivo y botones de selección para Día y Noche.
+   - Asignación rápida en la Galería (SavedWallpaperCard) mediante botones independientes "Día ☀️" y "Noche 🌙".
+
+4. Documentación:
+   - Actualización completa de README.md, ROADMAP.md, AI_CONTEXT.md y STRUCTURE.md.
+
+===================================================================

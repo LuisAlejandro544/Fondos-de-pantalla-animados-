@@ -17,7 +17,12 @@ data class WallpaperConfig(
     val qualityResolutionIndex: Int = 1, // 0 = 4K Original, 1 = 1080p Smart, 2 = 720p Eco, 3 = 540p Max Battery
     val hardwareSharpness: Boolean = true,
     val useVideoCompression: Boolean = true,
-    val appTheme: String = "SLATE_INDIGO"
+    val appTheme: String = "SLATE_INDIGO",
+    val isDayNightEnabled: Boolean = false,
+    val dayVideoUri: String = "",
+    val nightVideoUri: String = "",
+    val dayStartHour: Int = 6,   // 06:00
+    val nightStartHour: Int = 18 // 18:00
 )
 
 enum class ScaleMode {
@@ -56,12 +61,52 @@ class WallpaperPreferences(private val context: Context) {
             qualityResolutionIndex = prefs.getInt(KEY_QUALITY_RES_INDEX, 1),
             hardwareSharpness = prefs.getBoolean(KEY_HW_SHARPNESS, true),
             useVideoCompression = prefs.getBoolean(KEY_USE_VIDEO_COMPRESSION, true),
-            appTheme = prefs.getString(KEY_APP_THEME, "SLATE_INDIGO") ?: "SLATE_INDIGO"
+            appTheme = prefs.getString(KEY_APP_THEME, "SLATE_INDIGO") ?: "SLATE_INDIGO",
+            isDayNightEnabled = prefs.getBoolean(KEY_IS_DAY_NIGHT_ENABLED, false),
+            dayVideoUri = prefs.getString(KEY_DAY_VIDEO_URI, "") ?: "",
+            nightVideoUri = prefs.getString(KEY_NIGHT_VIDEO_URI, "") ?: "",
+            dayStartHour = prefs.getInt(KEY_DAY_START_HOUR, 6),
+            nightStartHour = prefs.getInt(KEY_NIGHT_START_HOUR, 18)
         )
+    }
+
+    fun getActiveVideoUriForTime(config: WallpaperConfig = loadConfig(), currentHour: Int = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY)): String {
+        if (!config.isDayNightEnabled) {
+            return config.videoUri
+        }
+        val isDay = currentHour in config.dayStartHour until config.nightStartHour
+        return if (isDay) {
+            if (config.dayVideoUri.isNotBlank()) config.dayVideoUri else config.videoUri
+        } else {
+            if (config.nightVideoUri.isNotBlank()) config.nightVideoUri else config.videoUri
+        }
     }
 
     fun saveVideoUri(uri: Uri) {
         prefs.edit().putString(KEY_VIDEO_URI, uri.toString()).apply()
+        _configFlow.value = loadConfig()
+    }
+
+    fun saveIsDayNightEnabled(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_IS_DAY_NIGHT_ENABLED, enabled).apply()
+        _configFlow.value = loadConfig()
+    }
+
+    fun saveDayVideoUri(uriString: String) {
+        prefs.edit().putString(KEY_DAY_VIDEO_URI, uriString).apply()
+        _configFlow.value = loadConfig()
+    }
+
+    fun saveNightVideoUri(uriString: String) {
+        prefs.edit().putString(KEY_NIGHT_VIDEO_URI, uriString).apply()
+        _configFlow.value = loadConfig()
+    }
+
+    fun saveDayNightHours(dayStart: Int, nightStart: Int) {
+        prefs.edit()
+            .putInt(KEY_DAY_START_HOUR, dayStart)
+            .putInt(KEY_NIGHT_START_HOUR, nightStart)
+            .apply()
         _configFlow.value = loadConfig()
     }
 
@@ -142,11 +187,18 @@ class WallpaperPreferences(private val context: Context) {
         const val KEY_HW_SHARPNESS = "key_hw_sharpness"
         const val KEY_USE_VIDEO_COMPRESSION = "key_use_video_compression"
         const val KEY_APP_THEME = "key_app_theme"
+        const val KEY_IS_DAY_NIGHT_ENABLED = "key_is_day_night_enabled"
+        const val KEY_DAY_VIDEO_URI = "key_day_video_uri"
+        const val KEY_NIGHT_VIDEO_URI = "key_night_video_uri"
+        const val KEY_DAY_START_HOUR = "key_day_start_hour"
+        const val KEY_NIGHT_START_HOUR = "key_night_start_hour"
 
         private val WATCHED_KEYS = setOf(
             KEY_VIDEO_URI, KEY_VOLUME, KEY_IS_MUTED, KEY_SCALE_MODE,
             KEY_USE_NATIVE_ENGINE, KEY_USE_BATTERY_SAVER, KEY_QUALITY_RES_INDEX,
-            KEY_HW_SHARPNESS, KEY_USE_VIDEO_COMPRESSION, KEY_APP_THEME
+            KEY_HW_SHARPNESS, KEY_USE_VIDEO_COMPRESSION, KEY_APP_THEME,
+            KEY_IS_DAY_NIGHT_ENABLED, KEY_DAY_VIDEO_URI, KEY_NIGHT_VIDEO_URI,
+            KEY_DAY_START_HOUR, KEY_NIGHT_START_HOUR
         )
     }
 }

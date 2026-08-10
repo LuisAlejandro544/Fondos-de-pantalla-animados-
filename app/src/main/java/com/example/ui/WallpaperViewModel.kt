@@ -216,6 +216,32 @@ class WallpaperViewModel(
         _downloadState.value = DownloadState.Idle
     }
 
+    fun onDayNightEnabledChanged(enabled: Boolean) {
+        preferences.saveIsDayNightEnabled(enabled)
+    }
+
+    fun onDayVideoSelected(uriString: String) {
+        preferences.saveDayVideoUri(uriString)
+    }
+
+    fun onNightVideoSelected(uriString: String) {
+        preferences.saveNightVideoUri(uriString)
+    }
+
+    fun onDayNightHoursChanged(dayStart: Int, nightStart: Int) {
+        preferences.saveDayNightHours(dayStart, nightStart)
+    }
+
+    fun isCurrentlyDayTime(): Boolean {
+        val config = configState.value
+        val currentHour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY)
+        return currentHour in config.dayStartHour until config.nightStartHour
+    }
+
+    fun getActiveVideoUri(): String {
+        return preferences.getActiveVideoUriForTime(configState.value)
+    }
+
     fun onVolumeChanged(volume: Float) {
         preferences.saveVolume(volume)
     }

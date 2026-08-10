@@ -57,6 +57,8 @@ jobs:
           MSG_FILE=""
           if [ -f "commit_message.txt" ]; then
             MSG_FILE="commit_message.txt"
+          elif [ -f "commits.txt" ]; then
+            MSG_FILE="commits.txt"
           elif [ -f "zips/commit_message.txt" ]; then
             MSG_FILE="zips/commit_message.txt"
           fi
@@ -66,7 +68,7 @@ jobs:
             echo "Mensaje de commit personalizado detectado en $MSG_FILE"
             TEMP_MSG=$(mktemp)
             cp "$MSG_FILE" "$TEMP_MSG"
-            rm -f "$MSG_FILE"
+            # Preservar el archivo de mensaje de commit en el repositorio
           fi
 
           git add -A
