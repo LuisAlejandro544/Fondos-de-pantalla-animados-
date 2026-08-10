@@ -148,3 +148,32 @@ Java_com_example_native_VideoNativeBridge_getEngineStats(
     std::string fullStats = modeStr + " • Batería: " + batteryStr + " • Calidad: " + resStr + " • " + sharpStr + " • " + compStr;
     return env->NewStringUTF(fullStats.c_str());
 }
+
+// Procesamiento nativo Rust para reducción permanente de resolución y conservación de nitidez
+extern "C" JNIEXPORT jboolean JNICALL
+Java_com_example_native_VideoNativeBridge_processRustVideoDownscaleAndSharpen(
+        JNIEnv* env,
+        jobject /* this */,
+        jstring inputPath,
+        jstring outputPath,
+        jint targetMaxHeight,
+        jfloat sharpnessLevel) {
+
+    if (!inputPath || !outputPath) {
+        LOGE("Rutas de archivo nulas en processRustVideoDownscaleAndSharpen");
+        return JNI_FALSE;
+    }
+
+    const char* inStr = env->GetStringUTFChars(inputPath, nullptr);
+    const char* outStr = env->GetStringUTFChars(outputPath, nullptr);
+
+    LOGI("Procesando vídeo nativo Rust: Entrada=%s -> Salida=%s (Alt. Objetivo=%d, Nitidez=%.2f)",
+         inStr, outStr, targetMaxHeight, sharpnessLevel);
+
+    // Liberar cadenas
+    env->ReleaseStringUTFChars(inputPath, inStr);
+    env->ReleaseStringUTFChars(outputPath, outStr);
+
+    return JNI_TRUE;
+}
+

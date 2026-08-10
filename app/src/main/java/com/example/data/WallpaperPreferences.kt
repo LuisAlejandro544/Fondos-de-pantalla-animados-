@@ -16,7 +16,8 @@ data class WallpaperConfig(
     val useBatterySaver: Boolean = true,
     val qualityResolutionIndex: Int = 1, // 0 = 4K Original, 1 = 1080p Smart, 2 = 720p Eco, 3 = 540p Max Battery
     val hardwareSharpness: Boolean = true,
-    val useVideoCompression: Boolean = true
+    val useVideoCompression: Boolean = true,
+    val appTheme: String = "SLATE_INDIGO"
 )
 
 enum class ScaleMode {
@@ -54,7 +55,8 @@ class WallpaperPreferences(private val context: Context) {
             useBatterySaver = prefs.getBoolean(KEY_USE_BATTERY_SAVER, true),
             qualityResolutionIndex = prefs.getInt(KEY_QUALITY_RES_INDEX, 1),
             hardwareSharpness = prefs.getBoolean(KEY_HW_SHARPNESS, true),
-            useVideoCompression = prefs.getBoolean(KEY_USE_VIDEO_COMPRESSION, true)
+            useVideoCompression = prefs.getBoolean(KEY_USE_VIDEO_COMPRESSION, true),
+            appTheme = prefs.getString(KEY_APP_THEME, "SLATE_INDIGO") ?: "SLATE_INDIGO"
         )
     }
 
@@ -122,6 +124,11 @@ class WallpaperPreferences(private val context: Context) {
         _configFlow.value = loadConfig()
     }
 
+    fun saveAppTheme(theme: String) {
+        prefs.edit().putString(KEY_APP_THEME, theme).apply()
+        _configFlow.value = loadConfig()
+    }
+
     companion object {
         private const val PREFS_NAME = "video_wallpaper_prefs"
         const val KEY_VIDEO_URI = "key_video_uri"
@@ -134,10 +141,12 @@ class WallpaperPreferences(private val context: Context) {
         const val KEY_QUALITY_RES_INDEX = "key_quality_res_index"
         const val KEY_HW_SHARPNESS = "key_hw_sharpness"
         const val KEY_USE_VIDEO_COMPRESSION = "key_use_video_compression"
+        const val KEY_APP_THEME = "key_app_theme"
 
         private val WATCHED_KEYS = setOf(
             KEY_VIDEO_URI, KEY_VOLUME, KEY_IS_MUTED, KEY_SCALE_MODE,
-            KEY_USE_NATIVE_ENGINE, KEY_USE_BATTERY_SAVER, KEY_QUALITY_RES_INDEX, KEY_HW_SHARPNESS, KEY_USE_VIDEO_COMPRESSION
+            KEY_USE_NATIVE_ENGINE, KEY_USE_BATTERY_SAVER, KEY_QUALITY_RES_INDEX,
+            KEY_HW_SHARPNESS, KEY_USE_VIDEO_COMPRESSION, KEY_APP_THEME
         )
     }
 }

@@ -54,10 +54,31 @@ jobs:
 
       - name: Commit and Push Synchronized Code
         run: |
+          MSG_FILE=""
+          if [ -f "commit_message.txt" ]; then
+            MSG_FILE="commit_message.txt"
+          elif [ -f "zips/commit_message.txt" ]; then
+            MSG_FILE="zips/commit_message.txt"
+          fi
+
+          TEMP_MSG=""
+          if [ -n "$MSG_FILE" ] && [ -s "$MSG_FILE" ]; then
+            echo "Mensaje de commit personalizado detectado en $MSG_FILE"
+            TEMP_MSG=$(mktemp)
+            cp "$MSG_FILE" "$TEMP_MSG"
+            rm -f "$MSG_FILE"
+          fi
+
           git add -A
           if git diff --staged --quiet; then
             echo "No se detectaron cambios tras descompresión del ZIP."
+            [ -n "$TEMP_MSG" ] && rm -f "$TEMP_MSG"
           else
-            git commit -m "chore(sync): actualización automática de código desde paquete ZIP"
+            if [ -n "$TEMP_MSG" ] && [ -f "$TEMP_MSG" ]; then
+              git commit -F "$TEMP_MSG"
+              rm -f "$TEMP_MSG"
+            else
+              git commit -m "chore(sync): actualización automática de código desde paquete ZIP"
+            fi
             git push
           fi

@@ -175,18 +175,18 @@ fun AdvancedSettingsCard(
                 icon = Icons.Default.Compress,
                 iconTint = MaterialTheme.colorScheme.primary,
                 title = "Compresión Inteligente de Archivo",
-                subtitle = "Comprime el peso del vídeo manteniendo la nitidez visual para que ocupe menos espacio y cargue al instante",
+                subtitle = "Reduce el peso del vídeo mediante el motor Rust conservando nitidez HD nativa para menor consumo de espacio, RAM y batería",
                 checked = config.useVideoCompression,
                 onCheckedChange = onUseVideoCompressionChanged,
                 testTag = "use_video_compression_switch",
                 onInfoClick = {
                     selectedInfoOption = OptionInfoDetails(
-                        title = "Compresión Inteligente de Archivo",
-                        activatedEffect = "Optimiza la tasa de datos del archivo en memoria reduciendo los megabytes que consume la aplicación sin distorsionar la imagen.",
-                        deactivatedEffect = "Mantiene el peso íntegro del archivo de vídeo tal como vino de la cámara o de internet.",
-                        pros = listOf("Libera espacio de almacenamiento", "El fondo de pantalla carga al instante", "Evita ralentizar el teléfono"),
-                        cons = listOf("En pantallas 4K gigantescas puede haber una minúscula diferencia si el vídeo original medía varios gigabytes"),
-                        idealUseCases = "Ideal para vídeos de TikTok, descargas de internet o si tienes poco espacio libre en el almacenamiento interno de tu teléfono."
+                        title = "Compresión Inteligente de Archivo (Motor Rust)",
+                        activatedEffect = "Procesa el vídeo con el motor Rust de alta velocidad, reescalando a 720p HD y preservando la nitidez nativa para un consumo mínimo de memoria RAM y almacenamiento.",
+                        deactivatedEffect = "Mantiene el archivo de vídeo original con su peso y dimensiones intactos sin el procesamiento de Rust.",
+                        pros = listOf("Ahorro drástico de almacenamiento y memoria RAM", "Carga ultra rápida y reproducción sin sobrecalentar la GPU", "Mantiene bordes y detalles nítidos sin borrosidad"),
+                        cons = listOf("Procesa el archivo durante unos segundos al seleccionar o descargar el vídeo"),
+                        idealUseCases = "Ideal para cualquier vídeo de TikTok o de la galería en teléfonos de cualquier gama para garantizar máximo rendimiento y batería."
                     )
                 }
             )

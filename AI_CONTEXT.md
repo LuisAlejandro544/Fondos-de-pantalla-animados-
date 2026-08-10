@@ -10,6 +10,16 @@ Proporcionar una aplicación Android moderna, ligera y estilizada que permita se
 - **Paleta elegida**: Slate Navy (`#0F172A`), Índigo sobrio (`#6366F1`) y Azul Cielo suave (`#38BDF8`).
 - **Recursos separados**: Los logotipos en formato `.svg` deben almacenarse en `/assets/logos/` y la configuración general en `/assets/app_config.json`.
 
+## 🖼️ Galería Independiente de Fondos y Navegación
+1. **Inicio Predeterminado**:
+   - La aplicación inicia directamente en la **Galería de Fondos** (`WallpaperGalleryScreen`), mostrando todos los fondos de vídeo o estáticos guardados por el usuario.
+   - Incluye filtros interactivos (**Todos**, **Animados**, **Estáticos**) y un botón destacado **"Ajustes"** en la cabecera.
+2. **Navegación con Botón de Regreso**:
+   - Al pulsar "Ajustes", navega a la pantalla de **Ajustes y Motor** (`WallpaperMainScreen`).
+   - En la pantalla de Ajustes, un botón superior **"Regresar a Galería"** permite volver instantáneamente a la Galería sin barras inferiores fijas.
+3. **Persistencia Local (`WallpaperGalleryRepository`)**:
+   - Guarda los metadatos de los fondos seleccionados/descargados en un archivo JSON local (`wallpaper_gallery.json`) en la memoria interna de la app.
+
 ## ⚙️ Reglas de Comportamiento del Slider de Sonido
 1. **Pulsar Silenciar / Interruptor**:
    - `isMuted = true`

@@ -33,6 +33,13 @@ object VideoNativeBridge {
         compressionOn: Boolean
     ): String
 
+    external fun processRustVideoDownscaleAndSharpen(
+        inputPath: String,
+        outputPath: String,
+        targetMaxHeight: Int,
+        sharpnessLevel: Float
+    ): Boolean
+
     fun isNativeReady(): Boolean = isNativeLoaded
 
     fun getEngineStatus(): String {

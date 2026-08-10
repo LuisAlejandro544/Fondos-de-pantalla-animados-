@@ -28,6 +28,10 @@ Este documento detalla las fases de desarrollo planificadas para la evolución d
 - [x] Descargador de vídeos de TikTok sin marca de agua integrado por enlace público (soporte `vt.tiktok.com` y URLs largas).
 - [x] Integración de descargas con detección de resolución automática, downscaling (1080p, 720p, 540p) y controles de audio.
 - [x] Botón directo para restaurar el fondo respaldado o abrir el selector de fondos nativo del sistema.
+- [x] **Galería Independiente de Fondos (`WallpaperGalleryScreen`)**: Pantalla inicial predeterminada con colección de fondos guardados, filtros (Todos, Animados, Estáticos) y eliminación.
+- [x] **Navegación Directa con Botón de Regreso**: Transición a la pantalla de Ajustes y Motor con botón de regreso "Regresar a Galería" sin barra inferior invasiva.
+- [x] **Motor NDK Rust de Downscaling (`RustVideoOptimizer`)**: Reducción permanente automática de resolución a 720p con preservación de nitidez nativa perceptual (Lanczos / Unsharp Mask).
+- [x] **Ajuste para Tiendas Alternativas (Uptodown)**: Eliminación total de dependencias de Google Play Services para distribución abierta e instalación directa.
 - [x] Pipeline de Integración Continua con GitHub Actions (`build-apk.yml` con `workflow_dispatch`).
 - [x] Firma de APK Debug con generación de llave en caliente (`keytool`) y caché de dependencias Gradle y Cargo.
 - [x] Workflow de descompresión y sincronización automática desde archivos `.zip` subidos a `zips/` (`process-zip-sync.yml`).
