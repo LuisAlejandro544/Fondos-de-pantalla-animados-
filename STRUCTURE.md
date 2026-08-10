@@ -52,11 +52,16 @@ Visión general de la organización del proyecto Android en Kotlin con capa nati
 │           │   │   │   ├── SoundControlsCard.kt  # Card de control de volumen y ajuste
 │           │   │   │   ├── TikTokDownloadCard.kt # Card interactiva para descargar vídeos de TikTok por URL
 │           │   │   │   ├── VideoPreviewCard.kt   # Card de previsualización de vídeo
-│           │   │   │   └── WallpaperStatusCard.kt# Indicador de estado del fondo activo
+│           │   │   │   ├── VisualFiltersCard.kt   # Card para Filtros Visuales, Blur en tiempo real y Presets
+│           │   │   │   ├── WallpaperStatusCard.kt# Indicador de estado del fondo activo
+│           │   │   │   └── WeatherSolarCard.kt   # Card para cambio por Clima y Sol Real (Uptodown/No-GPlay)
 │           │   │   ├── helpers/
-│           │   │   │   ├── RustVideoOptimizer.kt # Motor Rust de reducción a 720p y conservación de nitidez
+│           │   │   │   ├── RealVideoCompressor.kt # Transcodificación física hardware H.264 con MediaCodec/MediaMuxer
+│           │   │   │   ├── RustVideoOptimizer.kt # Motor de reducción y refinamiento de nitidez nativa JNI
 │           │   │   │   ├── TikTokDownloader.kt   # Gestor de descarga de vídeos de TikTok sin marca de agua
-│           │   │   │   └── WallpaperBackupManager.kt # Gestor modular de respaldo y restauración de fondos
+│           │   │   │   ├── VideoGlFilterRenderer.kt # Motor OpenGL ES 2.0 de filtros y Blur en GPU
+│           │   │   │   ├── WallpaperBackupManager.kt # Gestor modular de respaldo y restauración de fondos
+│           │   │   │   └── WeatherSolarManager.kt # Gestor de clima Open-Meteo y Sol Astronómico offline
 │           │       └── theme/
 │           │           ├── Color.kt          # Definición de colores (Slate e Índigo)
 │           │           └── Theme.kt          # Tema M3 de la aplicación

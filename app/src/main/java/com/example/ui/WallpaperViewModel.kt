@@ -285,6 +285,72 @@ class WallpaperViewModel(
         preferences.saveAppTheme(theme)
     }
 
+    fun onSmartAudioFocusChanged(enabled: Boolean) {
+        preferences.saveSmartAudioFocus(enabled)
+    }
+
+    fun onAudioFadeEnabledChanged(enabled: Boolean) {
+        preferences.saveAudioFadeEnabled(enabled)
+    }
+
+    fun onNightQuietModeChanged(enabled: Boolean) {
+        preferences.saveNightQuietMode(enabled)
+    }
+
+    fun onVisualFiltersChanged(blur: Float, brightness: Float, contrast: Float, saturation: Float, colorFilterMode: String) {
+        preferences.saveVisualFilters(blur, brightness, contrast, saturation, colorFilterMode)
+    }
+
+    fun onWeatherEnabledChanged(enabled: Boolean) {
+        preferences.saveWeatherSettings(
+            isWeatherEnabled = enabled,
+            isRealSolarEnabled = configState.value.isRealSolarEnabled
+        )
+    }
+
+    fun onRealSolarEnabledChanged(enabled: Boolean) {
+        preferences.saveWeatherSettings(
+            isWeatherEnabled = configState.value.isWeatherEnabled,
+            isRealSolarEnabled = enabled
+        )
+    }
+
+    fun onSunnyVideoSelected(uriString: String, contentResolver: ContentResolver) {
+        tryPersistUriPermission(contentResolver, Uri.parse(uriString))
+        preferences.saveWeatherSettings(
+            isWeatherEnabled = true,
+            isRealSolarEnabled = configState.value.isRealSolarEnabled,
+            sunnyUri = uriString
+        )
+    }
+
+    fun onRainyVideoSelected(uriString: String, contentResolver: ContentResolver) {
+        tryPersistUriPermission(contentResolver, Uri.parse(uriString))
+        preferences.saveWeatherSettings(
+            isWeatherEnabled = true,
+            isRealSolarEnabled = configState.value.isRealSolarEnabled,
+            rainyUri = uriString
+        )
+    }
+
+    fun onCloudyVideoSelected(uriString: String, contentResolver: ContentResolver) {
+        tryPersistUriPermission(contentResolver, Uri.parse(uriString))
+        preferences.saveWeatherSettings(
+            isWeatherEnabled = true,
+            isRealSolarEnabled = configState.value.isRealSolarEnabled,
+            cloudyUri = uriString
+        )
+    }
+
+    fun onSnowyVideoSelected(uriString: String, contentResolver: ContentResolver) {
+        tryPersistUriPermission(contentResolver, Uri.parse(uriString))
+        preferences.saveWeatherSettings(
+            isWeatherEnabled = true,
+            isRealSolarEnabled = configState.value.isRealSolarEnabled,
+            snowyUri = uriString
+        )
+    }
+
     fun isServiceActiveWallpaper(context: Context): Boolean {
         return WallpaperBackupManager.isServiceActiveWallpaper(context)
     }

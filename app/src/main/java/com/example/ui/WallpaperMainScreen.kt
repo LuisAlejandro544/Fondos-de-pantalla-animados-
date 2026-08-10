@@ -53,7 +53,9 @@ import com.example.ui.components.SoundControlsCard
 import com.example.ui.components.TikTokDownloadCard
 import com.example.ui.components.TikTokDownloadDialog
 import com.example.ui.components.VideoPreviewCard
+import com.example.ui.components.VisualFiltersCard
 import com.example.ui.components.WallpaperStatusCard
+import com.example.ui.components.WeatherSolarCard
 import com.example.ui.helpers.DownloadState
 import com.example.ui.helpers.OptimizationState
 
@@ -92,20 +94,39 @@ fun WallpaperMainScreen(
         }
     }
 
-    // Day/Night Specific Video Picker Launcher
+    // Day/Night & Weather Specific Video Picker Launcher
     val dayNightVideoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
     ) { uri: Uri? ->
         if (uri != null) {
             viewModel.backupOriginalWallpaperIfNeeded(context)
-            if (pickForTarget == "DAY") {
-                viewModel.onDayVideoSelected(uri.toString(), context.contentResolver)
-                viewModel.onDayNightEnabledChanged(true)
-                Toast.makeText(context, "Vídeo de Día asignado con éxito", Toast.LENGTH_SHORT).show()
-            } else if (pickForTarget == "NIGHT") {
-                viewModel.onNightVideoSelected(uri.toString(), context.contentResolver)
-                viewModel.onDayNightEnabledChanged(true)
-                Toast.makeText(context, "Vídeo de Noche asignado con éxito", Toast.LENGTH_SHORT).show()
+            when (pickForTarget) {
+                "DAY" -> {
+                    viewModel.onDayVideoSelected(uri.toString(), context.contentResolver)
+                    viewModel.onDayNightEnabledChanged(true)
+                    Toast.makeText(context, "Vídeo de Día asignado con éxito", Toast.LENGTH_SHORT).show()
+                }
+                "NIGHT" -> {
+                    viewModel.onNightVideoSelected(uri.toString(), context.contentResolver)
+                    viewModel.onDayNightEnabledChanged(true)
+                    Toast.makeText(context, "Vídeo de Noche asignado con éxito", Toast.LENGTH_SHORT).show()
+                }
+                "SUNNY" -> {
+                    viewModel.onSunnyVideoSelected(uri.toString(), context.contentResolver)
+                    Toast.makeText(context, "Vídeo para Día Soleado asignado con éxito", Toast.LENGTH_SHORT).show()
+                }
+                "RAINY" -> {
+                    viewModel.onRainyVideoSelected(uri.toString(), context.contentResolver)
+                    Toast.makeText(context, "Vídeo para Día Lluvioso asignado con éxito", Toast.LENGTH_SHORT).show()
+                }
+                "CLOUDY" -> {
+                    viewModel.onCloudyVideoSelected(uri.toString(), context.contentResolver)
+                    Toast.makeText(context, "Vídeo para Día Nublado asignado con éxito", Toast.LENGTH_SHORT).show()
+                }
+                "SNOWY" -> {
+                    viewModel.onSnowyVideoSelected(uri.toString(), context.contentResolver)
+                    Toast.makeText(context, "Vídeo para Nieve asignado con éxito", Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }
@@ -204,6 +225,7 @@ fun WallpaperMainScreen(
                 WallpaperGalleryScreen(
                     savedWallpapers = savedWallpapers,
                     hasOriginalBackup = hasOriginalBackup,
+                    activeVideoUri = config.videoUri,
                     onApplyWallpaper = { savedItem ->
                         viewModel.applySavedWallpaper(savedItem, context.contentResolver)
                         viewModel.openWallpaperPicker(context)
@@ -361,6 +383,49 @@ fun WallpaperMainScreen(
 
                 Spacer(modifier = Modifier.height(20.dp))
 
+                // Visual Filters & Real-Time Blur for Launcher Card
+                VisualFiltersCard(
+                    config = config,
+                    onFiltersChanged = { blur, brightness, contrast, saturation, filterMode ->
+                        viewModel.onVisualFiltersChanged(blur, brightness, contrast, saturation, filterMode)
+                    }
+                )
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // Weather & Real Solar Background Switcher Card
+                WeatherSolarCard(
+                    config = config,
+                    onWeatherToggle = { viewModel.onWeatherEnabledChanged(it) },
+                    onRealSolarToggle = { viewModel.onRealSolarEnabledChanged(it) },
+                    onSelectSunnyVideoClicked = {
+                        pickForTarget = "SUNNY"
+                        dayNightVideoPickerLauncher.launch(
+                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.VideoOnly)
+                        )
+                    },
+                    onSelectRainyVideoClicked = {
+                        pickForTarget = "RAINY"
+                        dayNightVideoPickerLauncher.launch(
+                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.VideoOnly)
+                        )
+                    },
+                    onSelectCloudyVideoClicked = {
+                        pickForTarget = "CLOUDY"
+                        dayNightVideoPickerLauncher.launch(
+                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.VideoOnly)
+                        )
+                    },
+                    onSelectSnowyVideoClicked = {
+                        pickForTarget = "SNOWY"
+                        dayNightVideoPickerLauncher.launch(
+                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.VideoOnly)
+                        )
+                    }
+                )
+
+                Spacer(modifier = Modifier.height(20.dp))
+
                 // Day / Night Dynamic Wallpaper Mode Card
                 DayNightWallpaperCard(
                     config = config,
@@ -388,7 +453,10 @@ fun WallpaperMainScreen(
                     config = config,
                     onVolumeChanged = { viewModel.onVolumeChanged(it) },
                     onMuteToggled = { viewModel.onMuteToggled() },
-                    onScaleModeChanged = { viewModel.onScaleModeChanged(it) }
+                    onScaleModeChanged = { viewModel.onScaleModeChanged(it) },
+                    onSmartAudioFocusChanged = { viewModel.onSmartAudioFocusChanged(it) },
+                    onAudioFadeEnabledChanged = { viewModel.onAudioFadeEnabledChanged(it) },
+                    onNightQuietModeChanged = { viewModel.onNightQuietModeChanged(it) }
                 )
 
                 Spacer(modifier = Modifier.height(20.dp))

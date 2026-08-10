@@ -50,6 +50,9 @@ fun SoundControlsCard(
     onVolumeChanged: (Float) -> Unit,
     onMuteToggled: () -> Unit,
     onScaleModeChanged: (ScaleMode) -> Unit,
+    onSmartAudioFocusChanged: ((Boolean) -> Unit)? = null,
+    onAudioFadeEnabledChanged: ((Boolean) -> Unit)? = null,
+    onNightQuietModeChanged: ((Boolean) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -66,7 +69,7 @@ fun SoundControlsCard(
             modifier = Modifier.padding(20.dp)
         ) {
             Text(
-                text = "Ajustes de Sonido",
+                text = "Ajustes y Gestión Inteligente de Audio",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
@@ -84,7 +87,7 @@ fun SoundControlsCard(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
                     Icon(
                         imageVector = if (config.isMuted) Icons.Default.VolumeMute else Icons.Default.VolumeUp,
                         contentDescription = "Modificar sonido",
@@ -128,13 +131,13 @@ fun SoundControlsCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Volumen",
+                        text = "Volumen de Fondo",
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        text = "${(config.volume * 100).roundToInt()}%",
+                        text = if (config.isMuted) "0%" else "${(config.volume * 100).roundToInt()}%",
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary
@@ -153,7 +156,7 @@ fun SoundControlsCard(
                     )
 
                     Slider(
-                        value = config.volume,
+                        value = if (config.isMuted) 0f else config.volume,
                         onValueChange = { onVolumeChanged(it) },
                         valueRange = 0f..1f,
                         colors = SliderDefaults.colors(
@@ -172,6 +175,108 @@ fun SoundControlsCard(
                         contentDescription = "Volumen alto",
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Smart Audio Management Options Section
+            Text(
+                text = "Gestión Inteligente de Audio",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f))
+                    .padding(14.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // Audio Focus
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Enfoque de Audio (Spotify/YouTube/Llamadas)",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = "Silencia o reduce el vídeo automáticamente cuando hay música o llamadas activas",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontSize = 11.sp
+                        )
+                    }
+                    Switch(
+                        checked = config.smartAudioFocus,
+                        onCheckedChange = { onSmartAudioFocusChanged?.invoke(it) },
+                        modifier = Modifier.testTag("smart_audio_focus_switch")
+                    )
+                }
+
+                // Audio Fade
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Fundido Suave de Audio (Fade-In)",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = "Entrada gradual del sonido al regresar a la pantalla de inicio",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontSize = 11.sp
+                        )
+                    }
+                    Switch(
+                        checked = config.audioFadeEnabled,
+                        onCheckedChange = { onAudioFadeEnabledChanged?.invoke(it) },
+                        modifier = Modifier.testTag("audio_fade_switch")
+                    )
+                }
+
+                // Night Quiet Mode
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Modo Noche Silencioso",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = "Silencia automáticamente el fondo de pantalla en horario nocturno (22:00 - 07:00)",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontSize = 11.sp
+                        )
+                    }
+                    Switch(
+                        checked = config.nightQuietMode,
+                        onCheckedChange = { onNightQuietModeChanged?.invoke(it) },
+                        modifier = Modifier.testTag("night_quiet_mode_switch")
                     )
                 }
             }

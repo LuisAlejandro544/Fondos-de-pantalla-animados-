@@ -1,9 +1,22 @@
-feat: opción modal 'Poner link de TikTok' en la Galería, navegación directa al editor y diseño limpio de cabecera nativa
+feat: integración de compresión de vídeo real H.264/AVC y gestión inteligente de audio
 
-- Rediseñado el encabezado principal de la Galería de Fondos (`WallpaperGalleryScreen`) para mantener un diseño nativo limpio y amplio, conservando únicamente el botón de engranaje de ajustes y eliminando botones redundantes de la barra superior.
-- Añadida la opción y botón "Poner link de TikTok" en la sección principal de Añadir Nuevo Vídeo de la Galería.
-- Creado el componente modal interactivo `TikTokDownloadDialog` con entrada de URL, pegar desde portapapeles y barra de progreso en tiempo real.
-- Configurada la navegación automática al editor de ajustes (`ENGINE_SETTINGS`) tras descargar un vídeo de TikTok.
-- Conservado el flujo de selección directa sin compresión previa y compresión diferida al establecer como fondo.
-- Mantenida la Pausa por Batería Baja (Ahorro 15%) y la persistencia de permisos de URIs locales.
-- Actualizada la documentación del proyecto (`AI_CONTEXT.md`, `README.md`, `ROADMAP.md`).
+- Implementado el motor de compresión real de vídeo (`RealVideoCompressor`) utilizando MediaCodec, MediaExtractor y MediaMuxer para re-codificación hardware H.264/AVC con bitrate ajustado y reducción genuina de tamaño de archivo MP4.
+- Integrada la compresión física en el pipeline de `RustVideoOptimizer`, calculando pesos reales en megabytes (MB) antes y después del procesamiento.
+- Añadido el sistema de Gestión Inteligente de Audio con `AudioManager.OnAudioFocusChangeListener` para pausar/silenciar el fondo automáticamente durante reproducción de Spotify, YouTube o llamadas entrantes.
+- Implementado el Modo Noche Silencioso con silenciado automático del fondo entre las 22:00 y las 07:00.
+- Añadido Fundido Suave de Audio (Fade-In) para transiciones fluidas al regresar a la pantalla de inicio.
+- Creados los switches y controles interactivos en `SoundControlsCard` para activar/desactivar cada función inteligente de audio.
+feat: detección automática de fondo "En Uso", restauración a estático original y botones rápidos en galería
+
+- Implementada detección automática en tiempo real del fondo animado activo con etiqueta destacada "✔ EN USO" y resaltado visual en las tarjetas de la Galería.
+- Añadida tarjeta persistente de restauración directa al fondo estático original del sistema desde la pantalla principal de la Galería.
+- Agregados botones de acción rápida ("Añadir Vídeo" y "Link TikTok") siempre visibles en la cabecera de la Galería para acelerar el flujo de trabajo del usuario.
+feat: filtros visuales y efecto blur en tiempo real (Launcher) + cambio de fondo por clima y salida/puesta de sol real (Uptodown/No-GPlay)
+
+- Implementado motor de renderizado OpenGL ES 2.0 (`VideoGlFilterRenderer.kt`) con shaders GLSL personalizados para aplicar desenfoque (Blur) en tiempo real al vídeo sin ocultarlo ni taparlo, optimizado para legibilidad del Launcher.
+- Añadidos controles deslizantes de Brillo (-50% a +50%), Contraste (0.5x a 1.5x), Saturación (0% a 200%) y Presets de Filtros de Color (*Normal*, *Oscuro Launcher*, *Sepia*, *Cyberpunk*, *Noche Confort*) en `VisualFiltersCard.kt`.
+- Creado el gestor de Clima y Salida/Puesta de Sol Real (`WeatherSolarManager.kt`) 100% independiente de Google Play Services (libre de `play-services-location`), apto para tiendas alternativas como Uptodown.
+- Integradas llamadas a la API ilimitada Open-Meteo, IP Geolocation fallback (`ip-api.com`) y `LocationManager` nativo de Android.
+- Desarrollado Algoritmo Astronómico Offline de Salida y Puesta de Sol en Kotlin (*Solar Astronomical Calculator*) que calcula las horas exactas de amanecer y atardecer en cualquier coordenada geográfica sin internet.
+- Implementada la conmutación automática de vídeo según la condición climática (*Soleado*, *Lluvia*, *Nublado*, *Nieve*) y la tarjeta interactiva `WeatherSolarCard.kt` en Ajustes.
+- Actualizada la documentación del proyecto (`README.md`, `ROADMAP.md`, `STRUCTURE.md`, `AI_CONTEXT.md`).

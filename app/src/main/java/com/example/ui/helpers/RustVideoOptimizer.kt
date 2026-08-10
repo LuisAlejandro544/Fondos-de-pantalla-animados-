@@ -77,8 +77,8 @@ object RustVideoOptimizer {
                 Log.w(TAG, "Error leyendo metadatos: ${e.message}")
             }
 
-            onProgressUpdate(OptimizationState.Processing(0.35f, "Calculando reducción de resolución sin pérdida de nitidez..."))
-            delay(300)
+            onProgressUpdate(OptimizationState.Processing(0.35f, "Calculando reducción de resolución y tasa de bits..."))
+            delay(200)
 
             // Target dimensions (Downscaling to 720p or 540p)
             val maxH = if (origH > 720) 720 else (origH * 0.75f).toInt()
@@ -88,34 +88,49 @@ object RustVideoOptimizer {
             if (targetW % 2 != 0) targetW--
             if (targetH % 2 != 0) targetH--
 
-            onProgressUpdate(OptimizationState.Processing(0.60f, "Aplicando algoritmo de nitidez Rust (Unsharp Masking)..."))
-            
-            val outputFile = File(dir, "wallpaper_opt_${System.currentTimeMillis()}.mp4")
+            val origLength = sourceFile.length()
+            val origSizeMB = (origLength.toFloat() / (1024 * 1024)).coerceAtLeast(0.1f)
 
-            // Execute Native JNI Rust downscaling processing
-            val nativeSuccess = try {
-                VideoNativeBridge.processRustVideoDownscaleAndSharpen(
-                    sourceFile.absolutePath,
-                    outputFile.absolutePath,
-                    targetH,
-                    1.2f
-                )
-            } catch (e: Exception) {
-                Log.e(TAG, "Excepción en JNI Rust: ${e.message}")
-                false
+            // Execute REAL video compression pipeline via RealVideoCompressor (MediaCodec + MediaMuxer)
+            val realCompressedFile = RealVideoCompressor.compressVideoFile(
+                context = context,
+                inputUri = Uri.fromFile(sourceFile),
+                targetWidth = targetW,
+                targetHeight = targetH,
+                targetBitrate = 1_500_000
+            ) { progress, status ->
+                onProgressUpdate(OptimizationState.Processing(0.40f + (progress * 0.45f), status))
             }
 
-            // Copy/rename file ensuring output exists
+            val outputFile = File(dir, "wallpaper_opt_${System.currentTimeMillis()}.mp4")
+
+            if (realCompressedFile != null && realCompressedFile.exists() && realCompressedFile.length() > 0) {
+                realCompressedFile.copyTo(outputFile, overwrite = true)
+                realCompressedFile.delete()
+            } else {
+                // Fallback to JNI or direct file if MediaCodec hardware encoding fails
+                try {
+                    VideoNativeBridge.processRustVideoDownscaleAndSharpen(
+                        sourceFile.absolutePath,
+                        outputFile.absolutePath,
+                        targetH,
+                        1.2f
+                    )
+                } catch (e: Exception) {
+                    Log.e(TAG, "Excepción en JNI Rust: ${e.message}")
+                }
+            }
+
             if (!outputFile.exists() || outputFile.length() == 0L) {
                 sourceFile.copyTo(outputFile, overwrite = true)
             }
             sourceFile.delete()
 
-            onProgressUpdate(OptimizationState.Processing(0.85f, "Sincronizando archivo optimizado en almacenamiento local..."))
-            delay(300)
+            onProgressUpdate(OptimizationState.Processing(0.90f, "Sincronizando archivo comprimido en almacenamiento local..."))
+            delay(200)
 
-            val origSizeMB = (sourceFile.length().toFloat() / (1024 * 1024)).coerceAtLeast(1.2f)
-            val newSizeMB = (outputFile.length().toFloat() / (1024 * 1024)).coerceAtLeast(0.6f)
+            val newLength = outputFile.length()
+            val newSizeMB = (newLength.toFloat() / (1024 * 1024)).coerceAtLeast(0.1f)
 
             val outputUri = Uri.fromFile(outputFile)
             val successState = OptimizationState.Success(

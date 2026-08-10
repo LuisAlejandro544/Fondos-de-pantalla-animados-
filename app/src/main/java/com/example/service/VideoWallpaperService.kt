@@ -10,6 +10,7 @@ import android.net.Uri
 import android.os.Build
 import android.service.wallpaper.WallpaperService
 import android.util.Log
+import android.view.Surface
 import android.view.SurfaceHolder
 import com.example.data.ScaleMode
 import com.example.data.WallpaperConfig
@@ -24,12 +25,31 @@ class VideoWallpaperService : WallpaperService() {
     inner class VideoEngine : Engine(), SharedPreferences.OnSharedPreferenceChangeListener {
 
         private var mediaPlayer: MediaPlayer? = null
+        private var glRenderer: VideoGlFilterRenderer? = null
         private lateinit var wallpaperPrefs: WallpaperPreferences
         private var currentConfig: WallpaperConfig? = null
         private var isScreenOn = true
         private var isLowBattery = false
+        private var audioManager: android.media.AudioManager? = null
 
         private var currentlyPlayingUri: String? = null
+
+        private val audioFocusChangeListener = android.media.AudioManager.OnAudioFocusChangeListener { focusChange ->
+            val config = currentConfig ?: wallpaperPrefs.loadConfig()
+            if (!config.smartAudioFocus) return@OnAudioFocusChangeListener
+
+            when (focusChange) {
+                android.media.AudioManager.AUDIOFOCUS_LOSS,
+                android.media.AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> {
+                    Log.i("VideoWallpaperService", "Gestión Inteligente de Audio: Enfoque de audio perdido (Spotify/Música/Llamada activa). Silenciando fondo.")
+                    mediaPlayer?.let { player -> try { player.setVolume(0.0f, 0.0f) } catch (e: Exception) {} }
+                }
+                android.media.AudioManager.AUDIOFOCUS_GAIN -> {
+                    Log.i("VideoWallpaperService", "Gestión Inteligente de Audio: Enfoque de audio recuperado. Restaurando sonido.")
+                    mediaPlayer?.let { player -> applySound(player, config) }
+                }
+            }
+        }
 
         private val screenReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
@@ -97,10 +117,10 @@ class VideoWallpaperService : WallpaperService() {
 
         private fun checkAndRefreshDayNightVideo() {
             val config = currentConfig ?: wallpaperPrefs.loadConfig()
-            if (config.isDayNightEnabled) {
+            if (config.isDayNightEnabled || config.isWeatherEnabled || config.isRealSolarEnabled) {
                 val targetUri = wallpaperPrefs.getActiveVideoUriForTime(config)
                 if (targetUri != currentlyPlayingUri && targetUri.isNotBlank()) {
-                    Log.i("VideoWallpaperService", "Cambio automático Día/Noche detectado ($targetUri). Actualizando fondo.")
+                    Log.i("VideoWallpaperService", "Cambio dinámico de vídeo detectado (Clima/Sol/Horario: $targetUri). Actualizando fondo.")
                     surfaceHolder?.let { playVideo(it) }
                 }
             }
@@ -110,6 +130,7 @@ class VideoWallpaperService : WallpaperService() {
             super.onCreate(surfaceHolder)
             wallpaperPrefs = WallpaperPreferences(applicationContext)
             currentConfig = wallpaperPrefs.loadConfig()
+            audioManager = applicationContext.getSystemService(Context.AUDIO_SERVICE) as? android.media.AudioManager
 
             // Register preference listener for live updates
             val prefs = applicationContext.getSharedPreferences("video_wallpaper_prefs", MODE_PRIVATE)
@@ -224,14 +245,18 @@ class VideoWallpaperService : WallpaperService() {
             val oldConfig = currentConfig
             currentConfig = newConfig
 
+            glRenderer?.currentConfig = newConfig
+
             val oldActiveUri = oldConfig?.let { wallpaperPrefs.getActiveVideoUriForTime(it) } ?: ""
             val newActiveUri = wallpaperPrefs.getActiveVideoUriForTime(newConfig)
 
             if (oldActiveUri != newActiveUri || currentlyPlayingUri != newActiveUri) {
-                // Active Video URI changed (e.g., Day/Night toggled or new video assigned), reload player
+                // Active Video URI changed (e.g., Day/Night or Weather toggled), reload player
                 surfaceHolder?.let { playVideo(it) }
             } else {
-                // Sound, scale, resolution, or NDK settings changed
+                // Sound, visual filters, scale, resolution, or NDK settings changed
+                glRenderer?.drawFrame()
+
                 mediaPlayer?.let { player ->
                     applySound(player, newConfig)
 
@@ -249,7 +274,6 @@ class VideoWallpaperService : WallpaperService() {
                                 dims[1],
                                 newConfig.hardwareSharpness
                             )
-                            Log.i("VideoWallpaperService", "Reconfiguración dinámica de NDK Surface: ${dims[0]}x${dims[1]} (Nitidez: ${newConfig.hardwareSharpness})")
                         }
                     }
                 }
@@ -272,17 +296,33 @@ class VideoWallpaperService : WallpaperService() {
             try {
                 val uri = Uri.parse(targetUriString)
 
+                // Initialize OpenGL ES 2.0 Shader Filter Renderer if visual filters or blur are configured
+                val hasVisualFilters = config.blurRadius > 0.001f ||
+                        config.brightness != 0.0f ||
+                        config.contrast != 1.0f ||
+                        config.saturation != 1.0f ||
+                        config.colorFilterMode != "NONE"
+
+                var glOutputSurface: Surface? = null
+                if (hasVisualFilters) {
+                    val renderer = VideoGlFilterRenderer(holder)
+                    renderer.currentConfig = config
+                    glOutputSurface = renderer.initialize()
+                    if (glOutputSurface != null) {
+                        glRenderer = renderer
+                        Log.i("VideoWallpaperService", "Motor OpenGL ES 2.0 con Filtros Visuales y Blur inicializado con éxito.")
+                    }
+                }
+
                 // Native ANativeWindow + NdkMediaCodec configuration if native engine is enabled
                 if (config.useNativeEngine && com.example.native.VideoNativeBridge.isNativeReady()) {
                     try {
-                        // Calculate optimal target resolution according to selected quality mode (4K, 1080p, 720p, 540p)
                         val dims = com.example.native.VideoNativeBridge.calculateOptimalResolution(
                             1080, 1920, config.qualityResolutionIndex
                         )
                         val targetW = dims[0]
                         val targetH = dims[1]
 
-                        // Configure ANativeWindow buffer geometry directly in C++ via NDK
                         com.example.native.VideoNativeBridge.configureNativeWindowSurface(
                             holder.surface,
                             targetW,
@@ -295,12 +335,13 @@ class VideoWallpaperService : WallpaperService() {
                     }
                 }
 
+                val targetSurface = glOutputSurface ?: holder.surface
+
                 mediaPlayer = MediaPlayer().apply {
-                    setSurface(holder.surface)
+                    setSurface(targetSurface)
                     setDataSource(applicationContext, uri)
                     isLooping = true
 
-                    // Apply battery saver playback adjustments if requested
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && config.useBatterySaver) {
                         try {
                             playbackParams = playbackParams.setSpeed(1.0f)
@@ -312,7 +353,6 @@ class VideoWallpaperService : WallpaperService() {
                     setOnPreparedListener { mp ->
                         applySound(mp, config)
 
-                        // Calculate native resolution once video dimensions are known
                         if (config.useNativeEngine && com.example.native.VideoNativeBridge.isNativeReady()) {
                             val vW = mp.videoWidth
                             val vH = mp.videoHeight
@@ -350,9 +390,44 @@ class VideoWallpaperService : WallpaperService() {
                     // Desactivación de Subsistemas de Audio (AudioFlinger/AudioTrack) para ahorro total de energía
                     player.setVolume(0.0f, 0.0f)
                     Log.d("VideoWallpaperService", "Subsistema de Audio silenciado y suspendido (AudioFlinger Bypass)")
+                    return
+                }
+
+                // Check Night Quiet Mode
+                if (config.nightQuietMode) {
+                    val hour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY)
+                    val isNight = hour >= 22 || hour < 7
+                    if (isNight) {
+                        player.setVolume(0.0f, 0.0f)
+                        Log.i("VideoWallpaperService", "Gestión Inteligente de Audio: Modo Noche Silencioso activo. Silenciando fondo.")
+                        return
+                    }
+                }
+
+                // Check Smart Audio Focus / Active Music Playback
+                if (config.smartAudioFocus && audioManager?.isMusicActive == true) {
+                    player.setVolume(0.0f, 0.0f)
+                    Log.i("VideoWallpaperService", "Gestión Inteligente de Audio: Música externa activa en el sistema. Silenciando vídeo de fondo.")
+                    return
+                }
+
+                val targetVol = config.volume
+                if (config.audioFadeEnabled) {
+                    // Smooth volume fade-in
+                    var currentVol = 0.0f
+                    val steps = 10
+                    val delta = targetVol / steps
+                    val handler = android.os.Handler(android.os.Looper.getMainLooper())
+                    for (i in 1..steps) {
+                        handler.postDelayed({
+                            try {
+                                currentVol = (delta * i).coerceAtMost(targetVol)
+                                player.setVolume(currentVol, currentVol)
+                            } catch (e: Exception) { }
+                        }, (i * 40).toLong())
+                    }
                 } else {
-                    val vol = config.volume
-                    player.setVolume(vol, vol)
+                    player.setVolume(targetVol, targetVol)
                 }
             } catch (e: Exception) {
                 Log.e("VideoWallpaper", "Error setting volume", e)
@@ -367,10 +442,12 @@ class VideoWallpaperService : WallpaperService() {
                     }
                     release()
                 }
+                glRenderer?.release()
             } catch (e: Exception) {
                 Log.e("VideoWallpaper", "Error releasing player", e)
             } finally {
                 mediaPlayer = null
+                glRenderer = null
             }
         }
     }

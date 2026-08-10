@@ -37,13 +37,33 @@ Este documento detalla las fases de desarrollo planificadas para la evolución d
   - [x] Componentes de interfaz dedicados (`DayNightWallpaperCard`) y asignación instantánea en la Galería (botones "Día ☀️" y "Noche 🌙").
 - [x] **Pantalla Completa de Ajustes de la Aplicación (`AppSettingsScreen`)**: Interfaz dedicada para personalización de temas visuales (Slate Navy, AMOLED, Material You, etc.) y términos legales en lugar de un modal emergente.
 - [x] **Despliegue de Términos y Condiciones en GitHub Pages**: Enlace oficial de Términos y Condiciones (https://luisalejandro544.github.io/Fondos-de-pantalla-animados-/) publicado mediante el workflow automatizado (`deploy-pages.yml`).
+- [x] **Motor de Compresión Real de Vídeo H.264/AVC (`RealVideoCompressor`)**: Re-codificación física por hardware con `MediaCodec`, `MediaExtractor` y `MediaMuxer` para transcodificación con reducción genuina de MB.
+- [x] **Gestión Inteligente de Audio**:
+  - [x] Enfoque de audio automático para silenciar/pausar ante reproducción de Spotify, YouTube o llamadas entrantes.
+  - [x] Fundido suave de audio (Fade-In) al regresar a la pantalla de inicio.
+  - [x] Modo Noche Silencioso automático entre las 22:00 y las 07:00 h.
+  - [x] Sincronización perfecta del slider de volumen y restauración de volumen no nulo.
 - [x] **Acceso Directo a Añadir Vídeo en la Cabecera**: Reemplazado el botón superior de ajustes por el botón directo "[📹 Añadir Vídeo]" en la Galería de Fondos.
 - [x] **Presentaciones Animadas en la Galería (`VideoGalleryItemThumbnail`)**: Miniaturas en movimiento en bucle silencioso dentro de cada tarjeta de la galería para explorar visualmente sin adivinar nombres.
 - [x] **Previsualización Reactiva Instantánea**: Actualización en tiempo real del reproductor de previsualización al cambiar o seleccionar cualquier vídeo.
+- [x] **Detección Automática de Fondo "EN USO"**: Identificación activa en tiempo real con distintivo destacado "✔ EN USO" y botones dinámicos en las tarjetas de la galería.
+- [x] **Restauración Directa de Fondo Estático Original**: Tarjeta persistente y botón dedicado en la Galería para cambiar al fondo de pantalla estático original con un toque.
+- [x] **Botones de Acción Rápida en la Cabecera de la Galería**: Accesos directos permanentes `[Añadir Vídeo]` y `[Link TikTok]` para cargar nuevo contenido de forma inmediata.
 - [x] **Selección Directa de Vídeo y Compresión Diferida**: Carga instantánea del vídeo original en la pantalla de edición (`ENGINE_SETTINGS`) al seleccionar de la galería sin comprimir previamente; la compresión de vídeo Rust solo se ejecuta al presionar "ESTABLECER COMO FONDO".
 - [x] **Detección y Pausa Automática por Batería Baja (Ahorro +15%)**: Congelado automático de la reproducción de vídeo al llegar al 15% o menos de carga (sin estar cargando) con reanudación al conectar el cargador.
 - [x] **Persistencia de Permisos de URIs Locales**: Otorgamiento y conservación persistente de permisos de lectura (`takePersistableUriPermission`) en la selección de vídeos locales, modo Día/Noche y Galería guardada.
 - [x] **Ajuste para Tiendas Alternativas (Uptodown)**: Eliminación total de dependencias de Google Play Services para distribución abierta e instalación directa.
+- [x] **Filtros Visuales y Efecto Blur en Tiempo Real (Ajuste para el Launcher)**:
+  - [x] Motor OpenGL ES 2.0 con Shaders GLSL personalizados en `VideoGlFilterRenderer`.
+  - [x] Deslizador de Desenfoque (*Blur*) de 0% a 100% para difuminar el fondo animado facilitando la lectura de iconos y widgets del launcher.
+  - [x] Controles de Brillo (-50% a +50%), Contraste (0.5x a 1.5x) y Saturación (0% B&N a 200% Ultra Vívido).
+  - [x] Fichas de Filtro de Color (*Normal*, *Oscuro Launcher*, *Sepia*, *Cyberpunk*, *Noche Confort*).
+  - [x] Botón de restablecimiento de filtros.
+- [x] **Cambio de Fondo por Clima y Salida/Puesta de Sol Real (Sin Google Play Services)**:
+  - [x] Integración con la API de Open-Meteo, IP Geolocation (`ip-api.com`) y `LocationManager` nativo de Android sin depender de `play-services-location`.
+  - [x] Asignación de vídeos por condición climática (*Soleado*, *Lluvia*, *Nublado*, *Nieve*).
+  - [x] Cálculo Astronómico Offline de Salida y Puesta de Sol en Kotlin (*Solar Astronomical Calculator*).
+  - [x] Tarjeta interactiva de estado del clima en tiempo real (`WeatherSolarCard`) con temperatura, ubicación y botón de actualización manual.
 - [x] Pipeline de Integración Continua con GitHub Actions (`build-apk.yml` con `workflow_dispatch`).
 - [x] Firma de APK Debug con generación de llave en caliente (`keytool`) y caché de dependencias Gradle y Cargo.
 - [x] Workflow de descompresión y sincronización automática desde archivos `.zip` subidos a `zips/` (`process-zip-sync.yml`).

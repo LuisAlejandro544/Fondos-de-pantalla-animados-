@@ -71,6 +71,7 @@ import java.util.Locale
 fun WallpaperGalleryScreen(
     savedWallpapers: List<SavedWallpaper>,
     hasOriginalBackup: Boolean,
+    activeVideoUri: String = "",
     onApplyWallpaper: (SavedWallpaper) -> Unit,
     onRestoreOriginalStaticWallpaper: () -> Unit,
     onDeleteWallpaper: (String) -> Unit,
@@ -137,7 +138,7 @@ fun WallpaperGalleryScreen(
                 )
             }
 
-            // Only the gear settings button in top header
+            // Gear settings button in top header
             IconButton(
                 onClick = onOpenAppSettings,
                 modifier = Modifier.testTag("gallery_gear_settings_button")
@@ -151,7 +152,49 @@ fun WallpaperGalleryScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Quick Action Buttons Row for adding new video or TikTok link
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Button(
+                onClick = onOpenGalleryPicker,
+                modifier = Modifier
+                    .weight(1f)
+                    .testTag("gallery_add_local_video_button"),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.VideoLibrary,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text("Añadir Vídeo", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            }
+
+            OutlinedButton(
+                onClick = onOpenTikTokDialog,
+                modifier = Modifier
+                    .weight(1f)
+                    .testTag("gallery_add_tiktok_link_button"),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.CloudDownload,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(16.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text("Link TikTok", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            }
+        }
 
         // Filter Chips
         Row(
@@ -203,42 +246,42 @@ fun WallpaperGalleryScreen(
             )
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(10.dp))
 
-        // Original Static Wallpaper Backup Card if available
-        if (hasOriginalBackup && (selectedFilter == "ALL" || selectedFilter == "STATIC")) {
+        // Direct Original Static Wallpaper Card
+        if (selectedFilter == "ALL" || selectedFilter == "STATIC") {
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 16.dp)
+                    .padding(bottom = 12.dp)
                     .testTag("original_static_wallpaper_card"),
-                shape = RoundedCornerShape(20.dp),
+                shape = RoundedCornerShape(18.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.45f)
                 )
             ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp),
+                        .padding(14.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(48.dp)
+                            .size(44.dp)
                             .clip(RoundedCornerShape(12.dp))
-                            .background(MaterialTheme.colorScheme.secondaryContainer),
+                            .background(MaterialTheme.colorScheme.secondary),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Icons.Default.Wallpaper,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.secondary,
-                            modifier = Modifier.size(26.dp)
+                            tint = Color.White,
+                            modifier = Modifier.size(24.dp)
                         )
                     }
 
-                    Spacer(modifier = Modifier.width(14.dp))
+                    Spacer(modifier = Modifier.width(12.dp))
 
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
@@ -248,25 +291,27 @@ fun WallpaperGalleryScreen(
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = "Respaldo del fondo del sistema antes de usar vídeo",
+                            text = if (hasOriginalBackup) "Restaurar fondo de pantalla original del sistema" else "Cambiar a fondo estático del sistema",
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontSize = 11.sp
                         )
                     }
 
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
 
-                    OutlinedButton(
+                    Button(
                         onClick = onRestoreOriginalStaticWallpaper,
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RoundedCornerShape(10.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
                     ) {
                         Icon(
                             imageVector = Icons.Default.Refresh,
                             contentDescription = null,
-                            modifier = Modifier.size(16.dp)
+                            modifier = Modifier.size(14.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text("Restaurar", fontSize = 12.sp)
+                        Text("Restaurar", fontSize = 11.sp, fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -356,6 +401,7 @@ fun WallpaperGalleryScreen(
                 items(filteredList, key = { it.id }) { item ->
                     SavedWallpaperCard(
                         wallpaper = item,
+                        activeVideoUri = activeVideoUri,
                         dateText = dateFormatter.format(Date(item.timestamp)),
                         onApplyClicked = {
                             onApplyWallpaper(item)
@@ -459,24 +505,27 @@ fun VideoGalleryItemThumbnail(
 @Composable
 fun SavedWallpaperCard(
     wallpaper: SavedWallpaper,
+    activeVideoUri: String = "",
     dateText: String,
     onApplyClicked: () -> Unit,
     onDeleteClicked: () -> Unit,
     onSetAsDayClicked: (() -> Unit)? = null,
     onSetAsNightClicked: (() -> Unit)? = null
 ) {
+    val isCurrentlyActive = wallpaper.isCurrent || (activeVideoUri.isNotBlank() && wallpaper.uriString == activeVideoUri)
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .testTag("saved_wallpaper_card_${wallpaper.id}"),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
-            containerColor = if (wallpaper.isCurrent)
-                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f)
+            containerColor = if (isCurrentlyActive)
+                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
             else
                 MaterialTheme.colorScheme.surface
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = if (isCurrentlyActive) 4.dp else 2.dp)
     ) {
         Column(
             modifier = Modifier
@@ -529,29 +578,29 @@ fun SavedWallpaperCard(
                             modifier = Modifier.weight(1f)
                         )
 
-                        if (wallpaper.isCurrent) {
+                        if (isCurrentlyActive) {
                             Surface(
                                 shape = RoundedCornerShape(10.dp),
                                 color = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.padding(start = 4.dp)
                             ) {
                                 Row(
-                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                    modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.CheckCircle,
                                         contentDescription = null,
                                         tint = Color.White,
-                                        modifier = Modifier.size(10.dp)
+                                        modifier = Modifier.size(11.dp)
                                     )
-                                    Spacer(modifier = Modifier.width(2.dp))
+                                    Spacer(modifier = Modifier.width(3.dp))
                                     Text(
                                         text = "EN USO",
                                         style = MaterialTheme.typography.labelSmall,
                                         color = Color.White,
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 9.sp
+                                        fontWeight = FontWeight.ExtraBold,
+                                        fontSize = 10.sp
                                     )
                                 }
                             }
@@ -680,7 +729,7 @@ fun SavedWallpaperCard(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = if (wallpaper.isCurrent)
+                    containerColor = if (isCurrentlyActive)
                         MaterialTheme.colorScheme.secondary
                     else
                         MaterialTheme.colorScheme.primary
@@ -693,7 +742,7 @@ fun SavedWallpaperCard(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = if (wallpaper.isCurrent) "Volver a Aplicar como Fondo" else "Aplicar como Fondo",
+                    text = if (isCurrentlyActive) "✔ En uso (Volver a Aplicar)" else "Aplicar como Fondo",
                     fontWeight = FontWeight.Bold
                 )
             }

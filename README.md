@@ -6,15 +6,39 @@
 
 ## 🚀 Características Principales
 
+- **Filtros Visuales y Efecto Blur en Tiempo Real (Ajuste para el Launcher)**:
+  - **Motor OpenGL ES 2.0 con Shaders GLSL**: Procesa el vídeo en tiempo real en la GPU a través de `VideoGlFilterRenderer` para un impacto mínimo en la batería.
+  - **Efecto Desenfoque (Blur para Launcher)**: Permite ajustar el radio de desenfoque del 0% al 100% para difuminar suavemente el fondo animado, destacando los iconos y widgets del launcher del usuario mientras el vídeo sigue siendo claramente visible.
+  - **Ajustes de Brillo, Contraste y Saturación**:
+    - **Brillo / Oscurecimiento**: Ajustable de -50% a +50% para atenúar vídeos brillantes y asegurar la lectura de nombres de aplicaciones.
+    - **Contraste**: Control deslizable de 0.5x a 1.5x.
+    - **Saturación**: Ajustable de 0% (B&N Escala de Grises) a 200% (Modo Ultra Vívido).
+  - **Modos de Filtros de Color**: Selección rápida con fichas interactiva entre *Normal*, *Oscuro Launcher*, *Sepia Cálido*, *Cyberpunk* y *Noche Confort*.
+  - **Restablecimiento**: Botón para restaurar todos los valores de filtro por defecto con un toque.
+- **Cambio de Fondo por Clima y Salida/Puesta de Sol Real (Sin Google Play Services)**:
+  - **Compatible con Uptodown**: Implementado 100% con APIs estándar de Android (`LocationManager`), geolocalización por IP y la API libre e ilimitada de **Open-Meteo**. Cero dependencia de `play-services-location`.
+  - **Vídeos según Condición Climática**: Asignación independiente de vídeos para *Soleado / Despejado ☀️*, *Lluvia / Tormenta 🌧️*, *Nublado / Niebla ☁️* y *Nieve / Helada ❄️*. Conmutación automática en tiempo real al cambiar el tiempo atmosférico.
+  - **Cálculo Astronómico Sol Real (Amanecer / Atardecer)**: Motor offline en Kotlin que calcula la hora exacta del amanecer y atardecer real según la latitud y longitud del usuario. Funciona 100% sin conexión a internet.
+  - **Tarjeta de Estado del Clima**: Muestra la ubicación detectada, temperatura actual (°C), icono climático y horarios de amanecer y atardecer con botón para forzar la actualización de ubicación y clima.
+- **Motor de Compresión Real de Vídeo H.264/AVC (`RealVideoCompressor`)**:
+  - Re-codificación física por hardware utilizando las APIs nativas de Android `MediaCodec`, `MediaExtractor` y `MediaMuxer`.
+  - Re-escalado de dimensiones y ajuste de bitrate objetivo (p. ej. 1.5 Mbps @ 720p/540p) para generar un archivo MP4 comprimido genuino con reducción real de megabytes.
+  - Sincronización automática con el motor de nitidez nativa en Rust (`RustVideoOptimizer`).
+- **Gestión Inteligente de Audio**:
+  - **Enfoque de Audio (Spotify / YouTube / Llamadas)**: Detecta reproducciones de música externas o llamadas activas mediante `AudioManager.OnAudioFocusChangeListener` e `isMusicActive`, silenciando o pausando el audio del fondo automáticamente para evitar interferencias.
+  - **Fundido Suave de Audio (Fade-In)**: Aplica una rampa de volumen progresiva al regresar a la pantalla de inicio para una transición auditiva placentera.
+  - **Modo Noche Silencioso**: Silencia el fondo de pantalla de forma automática en horario nocturno (22:00 - 07:00).
+  - **Coherencia con el Slider de Volumen**: El control deslizable indica 0% al silenciar y restaura el nivel de volumen exacto al reactivarse.
 - **Modo Fondo Dinámico Día / Noche Automático**:
   - Cambio automático de fondo animado según la hora del sistema (Día: 06:00 - 18:00 h / Noche: 18:00 - 06:00 h).
   - Receptor en tiempo real (`Intent.ACTION_TIME_TICK`) que conmuta el vídeo activo exactamente cuando cambia el horario sin reinicios bruscos.
   - Asignación rápida con un toque desde la Galería de Fondos (botones "Día ☀️" y "Noche 🌙") o desde la tarjeta dedicada en Ajustes.
   - Indicador visual de estado que muestra el período activo actual y el vídeo en reproducción.
-- **Galería Independiente de Fondos con Presentación Animada (Pantalla Principal)**:
-  - Pantalla inicial directa al abrir la app con colección persistente de fondos de pantalla.
+- **Galería Independiente de Fondos con Detección "En Uso" y Acciones Rápidas**:
+  - **Etiqueta "EN USO" Automática**: Identifica en tiempo real el fondo de pantalla animado activo en el sistema y resalta su tarjeta en la galería.
+  - **Restauración al Fondo Estático Original**: Opción directa desde la galería para restaurar el fondo de pantalla estático original del sistema con un solo toque.
+  - **Botones de Acción Rápida**: Accesos directos persistentes **"[📹 Añadir Vídeo]"** y **"[🔗 Link TikTok]"** en la cabecera para incorporar nuevo contenido sin pasos intermedios.
   - **Presentación en Miniatura Animada**: Cada tarjeta de la galería cuenta con un reproductor en bucle silencioso (`VideoGalleryItemThumbnail`) de bajo consumo de RAM que muestra una vista previa en movimiento del vídeo.
-  - Botón directo **"[📹 Añadir Vídeo]"** ubicado en el encabezado superior para seleccionar o descargar nuevos vídeos al instante.
   - Filtros para explorar fondos **Todos**, **Animados (Live Video)** o **Estáticos**.
   - Tarjeta de aplicación rápida y gestión de eliminación de fondos guardados.
 - **Menú de Ajustes de la Aplicación (Pantalla Independiente)**:
