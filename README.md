@@ -51,7 +51,7 @@
     - **Azul Océano**: Tonalidades marítimas profundas con acentos cian brillantes.
     - **Verde Esmeralda**: Estilo bosque oscuro elegante con tonos verde esmeralda.
     - **Violeta Ciberpunk**: Atmósfera nocturna púrpura con destellos neón magenta.
-  - Acceso directo a los **Términos y Condiciones** alojados en GitHub Pages ([Ver Términos Oficiales](https://luisalejandro544.github.io/Fondos-de-pantalla-animados-/)).
+  - Acceso directo a los **Términos y Condiciones** y **Política de Privacidad** alojados en GitHub Pages ([Términos](https://luisalejandro544.github.io/Fondos-de-pantalla-animados-/) | [Política de Privacidad](https://luisalejandro544.github.io/Fondos-de-pantalla-animados-/privacy.html)).
 - **Navegación Fluida con Botón de Regreso**:
   - Transición limpia hacia la pantalla de **Ajustes y Motor**.
   - Botón superior de navegación **"Regresar a Galería"** para volver atrás instantáneamente sin barras inferiores invasivas.

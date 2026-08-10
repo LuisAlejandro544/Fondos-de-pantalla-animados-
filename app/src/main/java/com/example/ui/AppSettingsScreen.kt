@@ -28,6 +28,7 @@ import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.OpenInNew
 import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -387,6 +388,48 @@ fun AppSettingsScreen(
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = "Ver Términos y Condiciones (GitHub Pages)",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.weight(1f))
+                        Icon(
+                            imageVector = Icons.Default.OpenInNew,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    OutlinedButton(
+                        onClick = {
+                            try {
+                                val intent = Intent(
+                                    Intent.ACTION_VIEW,
+                                    Uri.parse("https://luisalejandro544.github.io/Fondos-de-pantalla-animados-/privacy.html")
+                                )
+                                context.startActivity(intent)
+                            } catch (e: Exception) {
+                                Toast.makeText(
+                                    context,
+                                    "Política de Privacidad: Cero datos recopilados, 100% privado",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("privacy_policy_button"),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Security,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Ver Política de Privacidad (GitHub Pages)",
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Bold
                         )

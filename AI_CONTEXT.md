@@ -133,8 +133,10 @@ Proporcionar una aplicación Android moderna, ligera y estilizada que permita se
   - Deshabilita los chips de resolución superiores al vídeo cargado (`enabled = false`), impidiendo reescalados innecesarios y garantizando fallback a la resolución original si se cambia de vídeo.
   - `hardwareSharpness` (Boolean): Filtro de conservación de nitidez perceptual en resolución reducida.
 
-## 🚀 GitHub Actions CI/CD Pipelines
-- **Compilación de APK**: `.github/workflows/build-apk.yml` (`workflow_dispatch`).
+## 🚀 GitHub Actions CI/CD Pipelines & GitHub Pages
+- **Despliegue de GitHub Pages**: `.github/workflows/deploy-pages.yml`
+  - Aloja la página de Términos y Condiciones (`/docs/index.html`) y la Política de Privacidad (`/docs/privacy.html`).
+  - Accesibles directamente desde los botones de la pantalla de Ajustes de la Aplicación (`AppSettingsScreen.kt`).
   1. Descarga el repositorio completo incluyendo código Kotlin, C++ y Rust.
   2. Configura JDK 17, Android SDK y toolchain de Rust con targets para arquitecturas Android.
   3. Aplica caché para Gradle y Cargo/Rust.

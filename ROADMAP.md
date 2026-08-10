@@ -64,6 +64,9 @@ Este documento detalla las fases de desarrollo planificadas para la evolución d
   - [x] Asignación de vídeos por condición climática (*Soleado*, *Lluvia*, *Nublado*, *Nieve*).
   - [x] Cálculo Astronómico Offline de Salida y Puesta de Sol en Kotlin (*Solar Astronomical Calculator*).
   - [x] Tarjeta interactiva de estado del clima en tiempo real (`WeatherSolarCard`) con temperatura, ubicación y botón de actualización manual.
+- [x] **Páginas Legales y Política de Privacidad en GitHub Pages**:
+  - [x] Creación de `privacy.html` en `/docs/` con el mismo estilo responsivo e identidad visual que `index.html`.
+  - [x] Incorporación del botón de acceso a la Política de Privacidad en `AppSettingsScreen.kt` con enlace a GitHub Pages y fallback informativo.
 - [x] Pipeline de Integración Continua con GitHub Actions (`build-apk.yml` con `workflow_dispatch`).
 - [x] Firma de APK Debug con generación de llave en caliente (`keytool`) y caché de dependencias Gradle y Cargo.
 - [x] Workflow de descompresión y sincronización automática desde archivos `.zip` subidos a `zips/` (`process-zip-sync.yml`).

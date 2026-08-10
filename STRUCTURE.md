@@ -10,7 +10,8 @@ Visión general de la organización del proyecto Android en Kotlin con capa nati
 │       ├── deploy-pages.yml                  # Workflow de GitHub Actions para desplegar Términos en GitHub Pages
 │       └── process-zip-sync.yml              # Workflow para descompresión y sincronización de código desde ZIP
 ├── docs/
-│   └── index.html                            # Página de Términos y Condiciones para GitHub Pages
+│   ├── index.html                            # Página de Términos y Condiciones para GitHub Pages
+│   └── privacy.html                          # Página de Política de Privacidad para GitHub Pages
 ├── app/
 │   ├── build.gradle.kts                      # Configuración del módulo de la app y CMake
 │   └── src/
