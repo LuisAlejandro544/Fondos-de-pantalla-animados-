@@ -1,6 +1,25 @@
-feat: agregada política de privacidad (privacy.html), barra de navegación en GitHub Pages y accesos en la app
+feat: añadir indicadores activos Día/Noche, re-edición con 1-click y resolver persistencia de caché de vídeos
 
-- Creada la página HTML de Política de Privacidad (`/docs/privacy.html`) para GitHub Pages y añadida barra de navegación interconectada entre `index.html` y `privacy.html`.
-- Añadido botón interactivo "Ver Política de Privacidad (GitHub Pages)" en `AppSettingsScreen.kt` con icono de seguridad, enlace directo a `privacy.html` y Toast fallback de privacidad local (0% datos).
-- Configurado el workflow `deploy-pages.yml` con `workflow_dispatch` exclusivo para desplegar ambas páginas desde la carpeta `docs/`.
-- Actualizada la documentación del proyecto (`README.md`, `ROADMAP.md`, `STRUCTURE.md`, `AI_CONTEXT.md`) para incluir los nuevos artefactos y accesos legales.
+- Indicadores visuales y badges activos para Modo Día/Noche:
+  * Agregados badges `☀️ DÍA` y `🌙 NOCHE` dinámicos en la tarjeta `DayNightWallpaperCard`, en los ítems de la Galería (`WallpaperGalleryScreen`) y en el diálogo de selección (`SelectWallpaperDialog`).
+  * Muestra el nombre real del archivo/título asignado a cada ranura horaria y resalta la franja en ejecución ("ACTIVO AHORA").
+
+- Re-edición de fondos con 1 solo clic:
+  * Añadida la acción "✏️ Editar" tanto en las tarjetas de la ranura de Día/Noche como en cada tarjeta de la Galería.
+  * Al pulsar "Editar", la app carga el fondo seleccionado en la pantalla del motor para ajustar instantáneamente sus filtros visuales (desenfoque, brillo, contraste, saturación), velocidad, volumen o modo de escala.
+
+- Corregido fallo de caché donde el vídeo anterior permanecía en reproducción al cambiar fondos de día/noche o clima:
+  * Implementada copia automática de URIs temporales del PhotoPicker a archivos MP4 persistentes en el almacenamiento interno de la app (`files/wallpapers/`) con esquema file://.
+  * Resuelta la expiración de permisos de Android OS para URIs content:// temporales.
+  * Actualizado `VideoWallpaperService.kt` para forzar la recarga del reproductor `MediaPlayer` ante cualquier cambio de configuración o URI asignada.
+  * Actualizada `VideoPreviewCard.kt` para previsualizar dinámicamente el fondo activo según el horario (Día, Noche, Clima o Principal).
+
+- Implementado diálogo de selección integrado (`SelectWallpaperDialog.kt`):
+  * Al pulsar "Asignar Vídeo de Día/Noche" o fondos climáticos, se despliega un diálogo nativo con chips `☀️ DÍA` y `🌙 NOCHE` para seleccionar cualquier vídeo guardado con 1 toque.
+  * Mantiene la opción de explorar archivos nuevos del dispositivo mediante el selector del sistema.
+
+- Agregada la licencia PolyForm Noncommercial License 1.0.0 (`LICENSE`):
+  * Permite ver el código, modificarlo, ejecutarlo localmente y redistribuirlo únicamente para fines no comerciales.
+  * Prohíbe su uso y publicación con fines comerciales.
+
+- Actualizada la documentación técnica (`README.md`, `AI_CONTEXT.md` y `ROADMAP.md`).

@@ -49,6 +49,7 @@ import com.example.ui.components.DayNightWallpaperCard
 import com.example.ui.components.MainHeaderBar
 import com.example.ui.components.OptimizationLoadingDialog
 import com.example.ui.components.RestoreWallpaperCard
+import com.example.ui.components.SelectWallpaperDialog
 import com.example.ui.components.SoundControlsCard
 import com.example.ui.components.TikTokDownloadCard
 import com.example.ui.components.TikTokDownloadDialog
@@ -81,7 +82,8 @@ fun WallpaperMainScreen(
     var currentScreen by remember { mutableStateOf(ScreenState.GALLERY) }
     var showTikTokDialog by remember { mutableStateOf(false) }
 
-    var pickForTarget by remember { mutableStateOf<String?>(null) } // "DAY" or "NIGHT"
+    var pickForTarget by remember { mutableStateOf<String?>(null) } // "DAY", "NIGHT", etc.
+    var showSelectWallpaperDialogForTarget by remember { mutableStateOf<String?>(null) }
 
     // Video Gallery Picker Launcher
     val videoPickerLauncher = rememberLauncherForActivityResult(
@@ -102,29 +104,29 @@ fun WallpaperMainScreen(
             viewModel.backupOriginalWallpaperIfNeeded(context)
             when (pickForTarget) {
                 "DAY" -> {
-                    viewModel.onDayVideoSelected(uri.toString(), context.contentResolver)
+                    viewModel.onDayVideoSelected(context, uri.toString(), context.contentResolver)
                     viewModel.onDayNightEnabledChanged(true)
                     Toast.makeText(context, "Vídeo de Día asignado con éxito", Toast.LENGTH_SHORT).show()
                 }
                 "NIGHT" -> {
-                    viewModel.onNightVideoSelected(uri.toString(), context.contentResolver)
+                    viewModel.onNightVideoSelected(context, uri.toString(), context.contentResolver)
                     viewModel.onDayNightEnabledChanged(true)
                     Toast.makeText(context, "Vídeo de Noche asignado con éxito", Toast.LENGTH_SHORT).show()
                 }
                 "SUNNY" -> {
-                    viewModel.onSunnyVideoSelected(uri.toString(), context.contentResolver)
+                    viewModel.onSunnyVideoSelected(context, uri.toString(), context.contentResolver)
                     Toast.makeText(context, "Vídeo para Día Soleado asignado con éxito", Toast.LENGTH_SHORT).show()
                 }
                 "RAINY" -> {
-                    viewModel.onRainyVideoSelected(uri.toString(), context.contentResolver)
+                    viewModel.onRainyVideoSelected(context, uri.toString(), context.contentResolver)
                     Toast.makeText(context, "Vídeo para Día Lluvioso asignado con éxito", Toast.LENGTH_SHORT).show()
                 }
                 "CLOUDY" -> {
-                    viewModel.onCloudyVideoSelected(uri.toString(), context.contentResolver)
+                    viewModel.onCloudyVideoSelected(context, uri.toString(), context.contentResolver)
                     Toast.makeText(context, "Vídeo para Día Nublado asignado con éxito", Toast.LENGTH_SHORT).show()
                 }
                 "SNOWY" -> {
-                    viewModel.onSnowyVideoSelected(uri.toString(), context.contentResolver)
+                    viewModel.onSnowyVideoSelected(context, uri.toString(), context.contentResolver)
                     Toast.makeText(context, "Vídeo para Nieve asignado con éxito", Toast.LENGTH_SHORT).show()
                 }
             }
@@ -260,11 +262,11 @@ fun WallpaperMainScreen(
                         currentScreen = ScreenState.APP_SETTINGS
                     },
                     onSetAsDayWallpaper = { savedItem ->
-                        viewModel.onDayVideoSelected(savedItem.uriString, context.contentResolver)
+                        viewModel.onDayVideoSelected(context, savedItem.uriString, context.contentResolver)
                         viewModel.onDayNightEnabledChanged(true)
                     },
                     onSetAsNightWallpaper = { savedItem ->
-                        viewModel.onNightVideoSelected(savedItem.uriString, context.contentResolver)
+                        viewModel.onNightVideoSelected(context, savedItem.uriString, context.contentResolver)
                         viewModel.onDayNightEnabledChanged(true)
                     }
                 )
@@ -398,30 +400,10 @@ fun WallpaperMainScreen(
                     config = config,
                     onWeatherToggle = { viewModel.onWeatherEnabledChanged(it) },
                     onRealSolarToggle = { viewModel.onRealSolarEnabledChanged(it) },
-                    onSelectSunnyVideoClicked = {
-                        pickForTarget = "SUNNY"
-                        dayNightVideoPickerLauncher.launch(
-                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.VideoOnly)
-                        )
-                    },
-                    onSelectRainyVideoClicked = {
-                        pickForTarget = "RAINY"
-                        dayNightVideoPickerLauncher.launch(
-                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.VideoOnly)
-                        )
-                    },
-                    onSelectCloudyVideoClicked = {
-                        pickForTarget = "CLOUDY"
-                        dayNightVideoPickerLauncher.launch(
-                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.VideoOnly)
-                        )
-                    },
-                    onSelectSnowyVideoClicked = {
-                        pickForTarget = "SNOWY"
-                        dayNightVideoPickerLauncher.launch(
-                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.VideoOnly)
-                        )
-                    }
+                    onSelectSunnyVideoClicked = { showSelectWallpaperDialogForTarget = "SUNNY" },
+                    onSelectRainyVideoClicked = { showSelectWallpaperDialogForTarget = "RAINY" },
+                    onSelectCloudyVideoClicked = { showSelectWallpaperDialogForTarget = "CLOUDY" },
+                    onSelectSnowyVideoClicked = { showSelectWallpaperDialogForTarget = "SNOWY" }
                 )
 
                 Spacer(modifier = Modifier.height(20.dp))
@@ -432,17 +414,13 @@ fun WallpaperMainScreen(
                     onDayNightToggle = { enabled ->
                         viewModel.onDayNightEnabledChanged(enabled)
                     },
-                    onSelectDayVideoClicked = {
-                        pickForTarget = "DAY"
-                        dayNightVideoPickerLauncher.launch(
-                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.VideoOnly)
-                        )
-                    },
-                    onSelectNightVideoClicked = {
-                        pickForTarget = "NIGHT"
-                        dayNightVideoPickerLauncher.launch(
-                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.VideoOnly)
-                        )
+                    onSelectDayVideoClicked = { showSelectWallpaperDialogForTarget = "DAY" },
+                    onSelectNightVideoClicked = { showSelectWallpaperDialogForTarget = "NIGHT" },
+                    savedWallpapers = savedWallpapers,
+                    onEditVideoClicked = { uriStr ->
+                        viewModel.editVideoByUri(context, uriStr, context.contentResolver)
+                        currentScreen = ScreenState.ENGINE_SETTINGS
+                        Toast.makeText(context, "Modificando ajustes del fondo...", Toast.LENGTH_SHORT).show()
                     }
                 )
 
@@ -504,6 +482,76 @@ fun WallpaperMainScreen(
                 Spacer(modifier = Modifier.height(28.dp))
             }
         }
+    }
+
+    // Wallpaper Selection Dialog for Day / Night / Weather
+    showSelectWallpaperDialogForTarget?.let { target ->
+        val title = when (target) {
+            "DAY" -> "Vídeo de Día"
+            "NIGHT" -> "Vídeo de Noche"
+            "SUNNY" -> "Vídeo Soleado"
+            "RAINY" -> "Vídeo Lluvia"
+            "CLOUDY" -> "Vídeo Nublado"
+            "SNOWY" -> "Vídeo Nieve"
+            else -> "Vídeo"
+        }
+        val currentUri = when (target) {
+            "DAY" -> config.dayVideoUri
+            "NIGHT" -> config.nightVideoUri
+            "SUNNY" -> config.sunnyVideoUri
+            "RAINY" -> config.rainyVideoUri
+            "CLOUDY" -> config.cloudyVideoUri
+            "SNOWY" -> config.snowyVideoUri
+            else -> ""
+        }
+
+        SelectWallpaperDialog(
+            title = "Seleccionar $title",
+            targetName = title,
+            savedWallpapers = savedWallpapers,
+            currentAssignedUri = currentUri,
+            dayVideoUri = config.dayVideoUri,
+            nightVideoUri = config.nightVideoUri,
+            onSelectSavedWallpaper = { savedItem ->
+                when (target) {
+                    "DAY" -> {
+                        viewModel.onDayVideoSelected(context, savedItem.uriString, context.contentResolver)
+                        viewModel.onDayNightEnabledChanged(true)
+                        Toast.makeText(context, "Vídeo de Día asignado desde la Galería", Toast.LENGTH_SHORT).show()
+                    }
+                    "NIGHT" -> {
+                        viewModel.onNightVideoSelected(context, savedItem.uriString, context.contentResolver)
+                        viewModel.onDayNightEnabledChanged(true)
+                        Toast.makeText(context, "Vídeo de Noche asignado desde la Galería", Toast.LENGTH_SHORT).show()
+                    }
+                    "SUNNY" -> {
+                        viewModel.onSunnyVideoSelected(context, savedItem.uriString, context.contentResolver)
+                        Toast.makeText(context, "Vídeo Soleado asignado desde la Galería", Toast.LENGTH_SHORT).show()
+                    }
+                    "RAINY" -> {
+                        viewModel.onRainyVideoSelected(context, savedItem.uriString, context.contentResolver)
+                        Toast.makeText(context, "Vídeo Lluvia asignado desde la Galería", Toast.LENGTH_SHORT).show()
+                    }
+                    "CLOUDY" -> {
+                        viewModel.onCloudyVideoSelected(context, savedItem.uriString, context.contentResolver)
+                        Toast.makeText(context, "Vídeo Nublado asignado desde la Galería", Toast.LENGTH_SHORT).show()
+                    }
+                    "SNOWY" -> {
+                        viewModel.onSnowyVideoSelected(context, savedItem.uriString, context.contentResolver)
+                        Toast.makeText(context, "Vídeo Nieve asignado desde la Galería", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            },
+            onOpenSystemPicker = {
+                pickForTarget = target
+                dayNightVideoPickerLauncher.launch(
+                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.VideoOnly)
+                )
+            },
+            onDismissRequest = {
+                showSelectWallpaperDialogForTarget = null
+            }
+        )
     }
 }
 }

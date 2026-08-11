@@ -141,30 +141,52 @@ class WallpaperViewModel(
         }
     }
 
+    private fun copyUriToAppStorageIfNeeded(context: Context, uri: Uri, prefix: String): Uri {
+        if (uri.scheme == "file") return uri
+        return try {
+            val dir = java.io.File(context.filesDir, "wallpapers").apply { if (!exists()) mkdirs() }
+            val targetFile = java.io.File(dir, "${prefix}_${System.currentTimeMillis()}.mp4")
+            context.contentResolver.openInputStream(uri)?.use { input ->
+                java.io.FileOutputStream(targetFile).use { output ->
+                    input.copyTo(output)
+                }
+            }
+            if (targetFile.exists() && targetFile.length() > 0) {
+                Uri.fromFile(targetFile)
+            } else {
+                uri
+            }
+        } catch (e: Exception) {
+            Log.e("WallpaperViewModel", "Error copiando vídeo a almacenamiento interno: ${e.message}")
+            uri
+        }
+    }
+
     // MANDATORY DEFAULT: Downscale video with Rust engine and preserve sharpness
     fun onVideoSelected(context: Context, uri: Uri, contentResolver: ContentResolver) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             tryPersistUriPermission(contentResolver, uri)
-
             backupOriginalWallpaperIfNeeded(context)
 
-            // Direct selection without initial compression
-            preferences.saveVideoUri(uri)
-            detectVideoResolution(context, uri.toString())
+            val persistentUri = copyUriToAppStorageIfNeeded(context, uri, "main")
 
-            // Add to Wallpaper Gallery as original selected video
-            val wallpaperId = "wall_${System.currentTimeMillis()}"
-            val newWallpaper = SavedWallpaper(
-                id = wallpaperId,
-                title = "Vídeo Galería (${System.currentTimeMillis() % 10000})",
-                uriString = uri.toString(),
-                isLiveVideo = true,
-                resolutionText = "Original",
-                fileSizeMB = 12.5f,
-                timestamp = System.currentTimeMillis(),
-                isCurrent = true
-            )
-            galleryRepository.addWallpaper(newWallpaper)
+            withContext(Dispatchers.Main) {
+                preferences.saveVideoUri(persistentUri)
+                detectVideoResolution(context, persistentUri.toString())
+
+                val wallpaperId = "wall_${System.currentTimeMillis()}"
+                val newWallpaper = SavedWallpaper(
+                    id = wallpaperId,
+                    title = "Vídeo Galería (${System.currentTimeMillis() % 10000})",
+                    uriString = persistentUri.toString(),
+                    isLiveVideo = true,
+                    resolutionText = "Original",
+                    fileSizeMB = 12.5f,
+                    timestamp = System.currentTimeMillis(),
+                    isCurrent = true
+                )
+                galleryRepository.addWallpaper(newWallpaper)
+            }
         }
     }
 
@@ -202,6 +224,16 @@ class WallpaperViewModel(
         galleryRepository.setCurrentWallpaper(wallpaper.id)
     }
 
+    fun editVideoByUri(context: Context? = null, uriString: String, contentResolver: ContentResolver? = null) {
+        if (uriString.isBlank()) return
+        val uri = Uri.parse(uriString)
+        tryPersistUriPermission(contentResolver, uri)
+        preferences.saveVideoUri(uri)
+        if (context != null) {
+            detectVideoResolution(context, uriString)
+        }
+    }
+
     fun deleteSavedWallpaper(id: String) {
         galleryRepository.deleteWallpaper(id)
     }
@@ -218,16 +250,44 @@ class WallpaperViewModel(
         preferences.saveIsDayNightEnabled(enabled)
     }
 
-    fun onDayVideoSelected(uriString: String, contentResolver: ContentResolver? = null) {
-        val uri = Uri.parse(uriString)
-        tryPersistUriPermission(contentResolver, uri)
-        preferences.saveDayVideoUri(uriString)
+    private fun ensureInGallery(uriStr: String, defaultTitle: String) {
+        val currentList = galleryRepository.wallpapersFlow.value
+        if (currentList.none { it.uriString == uriStr }) {
+            val wallpaperId = "wall_${System.currentTimeMillis()}"
+            val newWallpaper = SavedWallpaper(
+                id = wallpaperId,
+                title = "$defaultTitle (${System.currentTimeMillis() % 10000})",
+                uriString = uriStr,
+                isLiveVideo = true,
+                resolutionText = "Guardado",
+                fileSizeMB = 10.0f,
+                timestamp = System.currentTimeMillis(),
+                isCurrent = false
+            )
+            galleryRepository.addWallpaper(newWallpaper)
+        }
     }
 
-    fun onNightVideoSelected(uriString: String, contentResolver: ContentResolver? = null) {
+    fun onDayVideoSelected(context: Context? = null, uriString: String, contentResolver: ContentResolver? = null) {
         val uri = Uri.parse(uriString)
         tryPersistUriPermission(contentResolver, uri)
-        preferences.saveNightVideoUri(uriString)
+        val finalUriStr = if (context != null && uri.scheme == "content") {
+            copyUriToAppStorageIfNeeded(context, uri, "day").toString()
+        } else uriString
+
+        preferences.saveDayVideoUri(finalUriStr)
+        ensureInGallery(finalUriStr, "Vídeo de Día")
+    }
+
+    fun onNightVideoSelected(context: Context? = null, uriString: String, contentResolver: ContentResolver? = null) {
+        val uri = Uri.parse(uriString)
+        tryPersistUriPermission(contentResolver, uri)
+        val finalUriStr = if (context != null && uri.scheme == "content") {
+            copyUriToAppStorageIfNeeded(context, uri, "night").toString()
+        } else uriString
+
+        preferences.saveNightVideoUri(finalUriStr)
+        ensureInGallery(finalUriStr, "Vídeo de Noche")
     }
 
     fun onDayNightHoursChanged(dayStart: Int, nightStart: Int) {
@@ -315,40 +375,64 @@ class WallpaperViewModel(
         )
     }
 
-    fun onSunnyVideoSelected(uriString: String, contentResolver: ContentResolver) {
-        tryPersistUriPermission(contentResolver, Uri.parse(uriString))
+    fun onSunnyVideoSelected(context: Context? = null, uriString: String, contentResolver: ContentResolver? = null) {
+        val uri = Uri.parse(uriString)
+        tryPersistUriPermission(contentResolver, uri)
+        val finalUriStr = if (context != null && uri.scheme == "content") {
+            copyUriToAppStorageIfNeeded(context, uri, "sunny").toString()
+        } else uriString
+
         preferences.saveWeatherSettings(
             isWeatherEnabled = true,
             isRealSolarEnabled = configState.value.isRealSolarEnabled,
-            sunnyUri = uriString
+            sunnyUri = finalUriStr
         )
+        ensureInGallery(finalUriStr, "Vídeo Soleado")
     }
 
-    fun onRainyVideoSelected(uriString: String, contentResolver: ContentResolver) {
-        tryPersistUriPermission(contentResolver, Uri.parse(uriString))
+    fun onRainyVideoSelected(context: Context? = null, uriString: String, contentResolver: ContentResolver? = null) {
+        val uri = Uri.parse(uriString)
+        tryPersistUriPermission(contentResolver, uri)
+        val finalUriStr = if (context != null && uri.scheme == "content") {
+            copyUriToAppStorageIfNeeded(context, uri, "rainy").toString()
+        } else uriString
+
         preferences.saveWeatherSettings(
             isWeatherEnabled = true,
             isRealSolarEnabled = configState.value.isRealSolarEnabled,
-            rainyUri = uriString
+            rainyUri = finalUriStr
         )
+        ensureInGallery(finalUriStr, "Vídeo Lluvia")
     }
 
-    fun onCloudyVideoSelected(uriString: String, contentResolver: ContentResolver) {
-        tryPersistUriPermission(contentResolver, Uri.parse(uriString))
+    fun onCloudyVideoSelected(context: Context? = null, uriString: String, contentResolver: ContentResolver? = null) {
+        val uri = Uri.parse(uriString)
+        tryPersistUriPermission(contentResolver, uri)
+        val finalUriStr = if (context != null && uri.scheme == "content") {
+            copyUriToAppStorageIfNeeded(context, uri, "cloudy").toString()
+        } else uriString
+
         preferences.saveWeatherSettings(
             isWeatherEnabled = true,
             isRealSolarEnabled = configState.value.isRealSolarEnabled,
-            cloudyUri = uriString
+            cloudyUri = finalUriStr
         )
+        ensureInGallery(finalUriStr, "Vídeo Nublado")
     }
 
-    fun onSnowyVideoSelected(uriString: String, contentResolver: ContentResolver) {
-        tryPersistUriPermission(contentResolver, Uri.parse(uriString))
+    fun onSnowyVideoSelected(context: Context? = null, uriString: String, contentResolver: ContentResolver? = null) {
+        val uri = Uri.parse(uriString)
+        tryPersistUriPermission(contentResolver, uri)
+        val finalUriStr = if (context != null && uri.scheme == "content") {
+            copyUriToAppStorageIfNeeded(context, uri, "snowy").toString()
+        } else uriString
+
         preferences.saveWeatherSettings(
             isWeatherEnabled = true,
             isRealSolarEnabled = configState.value.isRealSolarEnabled,
-            snowyUri = uriString
+            snowyUri = finalUriStr
         )
+        ensureInGallery(finalUriStr, "Vídeo Nieve")
     }
 
     fun isServiceActiveWallpaper(context: Context): Boolean {

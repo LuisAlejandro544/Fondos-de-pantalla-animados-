@@ -35,6 +35,9 @@ Este documento detalla las fases de desarrollo planificadas para la evolución d
   - [x] Selección dual de vídeos para día y noche con horario personalizable (predeterminado 06:00 - 18:00 h / 18:00 - 06:00 h).
   - [x] Conmutación automática sin interrupciones mediante `BroadcastReceiver` (`ACTION_TIME_TICK` / `ACTION_TIME_CHANGED`).
   - [x] Componentes de interfaz dedicados (`DayNightWallpaperCard`) y asignación instantánea en la Galería (botones "Día ☀️" y "Noche 🌙").
+  - [x] Indicadores visuales claros (`☀️ DÍA` / `🌙 NOCHE`) en las tarjetas y en el diálogo de selección nativo (`SelectWallpaperDialog`).
+  - [x] Botón de acción **"✏️ Editar"** (1-click) para re-abrir y modificar cualquier fondo en el motor de ajustes.
+  - [x] Copia automática de vídeos a almacenamiento interno permanente (`files/wallpapers/`) para eliminar fallos de permisos expirados y persistencia de caché.
 - [x] **Pantalla Completa de Ajustes de la Aplicación (`AppSettingsScreen`)**: Interfaz dedicada para personalización de temas visuales (Slate Navy, AMOLED, Material You, etc.) y términos legales en lugar de un modal emergente.
 - [x] **Despliegue de Términos y Condiciones en GitHub Pages**: Enlace oficial de Términos y Condiciones (https://luisalejandro544.github.io/Fondos-de-pantalla-animados-/) publicado mediante el workflow automatizado (`deploy-pages.yml`).
 - [x] **Motor de Compresión Real de Vídeo H.264/AVC (`RealVideoCompressor`)**: Re-codificación física por hardware con `MediaCodec`, `MediaExtractor` y `MediaMuxer` para transcodificación con reducción genuina de MB.

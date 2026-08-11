@@ -32,6 +32,7 @@ import androidx.compose.material.icons.filled.NightsStay
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.VideoLibrary
 import androidx.compose.material.icons.filled.Wallpaper
 import androidx.compose.material.icons.filled.WbSunny
@@ -72,7 +73,10 @@ fun WallpaperGalleryScreen(
     savedWallpapers: List<SavedWallpaper>,
     hasOriginalBackup: Boolean,
     activeVideoUri: String = "",
+    dayVideoUri: String = "",
+    nightVideoUri: String = "",
     onApplyWallpaper: (SavedWallpaper) -> Unit,
+    onEditWallpaper: ((SavedWallpaper) -> Unit)? = null,
     onRestoreOriginalStaticWallpaper: () -> Unit,
     onDeleteWallpaper: (String) -> Unit,
     onOpenGalleryPicker: () -> Unit,
@@ -402,6 +406,8 @@ fun WallpaperGalleryScreen(
                     SavedWallpaperCard(
                         wallpaper = item,
                         activeVideoUri = activeVideoUri,
+                        dayVideoUri = dayVideoUri,
+                        nightVideoUri = nightVideoUri,
                         dateText = dateFormatter.format(Date(item.timestamp)),
                         onApplyClicked = {
                             onApplyWallpaper(item)
@@ -410,6 +416,9 @@ fun WallpaperGalleryScreen(
                                 "Fondo seleccionado. Toca 'Aplicar' para establecerlo.",
                                 Toast.LENGTH_SHORT
                             ).show()
+                        },
+                        onEditClicked = onEditWallpaper?.let { callback ->
+                            { callback(item) }
                         },
                         onDeleteClicked = {
                             onDeleteWallpaper(item.id)
@@ -506,13 +515,18 @@ fun VideoGalleryItemThumbnail(
 fun SavedWallpaperCard(
     wallpaper: SavedWallpaper,
     activeVideoUri: String = "",
+    dayVideoUri: String = "",
+    nightVideoUri: String = "",
     dateText: String,
     onApplyClicked: () -> Unit,
+    onEditClicked: (() -> Unit)? = null,
     onDeleteClicked: () -> Unit,
     onSetAsDayClicked: (() -> Unit)? = null,
     onSetAsNightClicked: (() -> Unit)? = null
 ) {
     val isCurrentlyActive = wallpaper.isCurrent || (activeVideoUri.isNotBlank() && wallpaper.uriString == activeVideoUri)
+    val isDayAssigned = dayVideoUri.isNotBlank() && wallpaper.uriString == dayVideoUri
+    val isNightAssigned = nightVideoUri.isNotBlank() && wallpaper.uriString == nightVideoUri
 
     Card(
         modifier = Modifier
@@ -606,6 +620,40 @@ fun SavedWallpaperCard(
                             }
                         }
 
+                        if (isDayAssigned) {
+                            Surface(
+                                shape = RoundedCornerShape(10.dp),
+                                color = Color(0xFFFF8F00),
+                                modifier = Modifier.padding(start = 4.dp)
+                            ) {
+                                Text(
+                                    text = "☀️ DÍA",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = Color.White,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    fontSize = 10.sp,
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
+                                )
+                            }
+                        }
+
+                        if (isNightAssigned) {
+                            Surface(
+                                shape = RoundedCornerShape(10.dp),
+                                color = Color(0xFF7C4DFF),
+                                modifier = Modifier.padding(start = 4.dp)
+                            ) {
+                                Text(
+                                    text = "🌙 NOCHE",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = Color.White,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    fontSize = 10.sp,
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
+                                )
+                            }
+                        }
+
                         IconButton(
                             onClick = onDeleteClicked,
                             modifier = Modifier.size(32.dp)
@@ -688,63 +736,123 @@ fun SavedWallpaperCard(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     if (onSetAsDayClicked != null) {
-                        OutlinedButton(
-                            onClick = onSetAsDayClicked,
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(10.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.WbSunny,
-                                contentDescription = null,
-                                tint = Color(0xFFFF8F00),
-                                modifier = Modifier.size(16.dp)
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text("Día ☀️", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        if (isDayAssigned) {
+                            Button(
+                                onClick = onSetAsDayClicked,
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(10.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF8F00))
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.WbSunny,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("☀️ En Día ✓", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            }
+                        } else {
+                            OutlinedButton(
+                                onClick = onSetAsDayClicked,
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(10.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.WbSunny,
+                                    contentDescription = null,
+                                    tint = Color(0xFFFF8F00),
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("Día ☀️", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            }
                         }
                     }
 
                     if (onSetAsNightClicked != null) {
-                        OutlinedButton(
-                            onClick = onSetAsNightClicked,
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(10.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.NightsStay,
-                                contentDescription = null,
-                                tint = Color(0xFF7C4DFF),
-                                modifier = Modifier.size(16.dp)
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text("Noche 🌙", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        if (isNightAssigned) {
+                            Button(
+                                onClick = onSetAsNightClicked,
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(10.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7C4DFF))
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.NightsStay,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("🌙 En Noche ✓", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            }
+                        } else {
+                            OutlinedButton(
+                                onClick = onSetAsNightClicked,
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(10.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.NightsStay,
+                                    contentDescription = null,
+                                    tint = Color(0xFF7C4DFF),
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("Noche 🌙", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            }
                         }
                     }
                 }
             }
 
-            // Action: Volver a ponérsela / Aplicar como Fondo
-            Button(
-                onClick = onApplyClicked,
+            // Action Row: Aplicar + Editar
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = if (isCurrentlyActive)
-                        MaterialTheme.colorScheme.secondary
-                    else
-                        MaterialTheme.colorScheme.primary
-                )
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Icon(
-                    imageVector = Icons.Default.Wallpaper,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = if (isCurrentlyActive) "✔ En uso (Volver a Aplicar)" else "Aplicar como Fondo",
-                    fontWeight = FontWeight.Bold
-                )
+                Button(
+                    onClick = onApplyClicked,
+                    modifier = Modifier.weight(1.3f),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (isCurrentlyActive)
+                            MaterialTheme.colorScheme.secondary
+                        else
+                            MaterialTheme.colorScheme.primary
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Wallpaper,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = if (isCurrentlyActive) "✔ En uso" else "Aplicar",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 12.sp
+                    )
+                }
+
+                if (onEditClicked != null) {
+                    OutlinedButton(
+                        onClick = onEditClicked,
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Tune,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "✏️ Editar",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 12.sp
+                        )
+                    }
+                }
             }
         }
     }

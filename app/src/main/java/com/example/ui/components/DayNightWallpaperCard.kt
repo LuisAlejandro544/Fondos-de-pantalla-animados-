@@ -17,6 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Brightness4
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.NightsStay
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.VideoLibrary
 import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material3.Button
@@ -40,6 +41,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.data.SavedWallpaper
 import com.example.data.WallpaperConfig
 import java.util.Calendar
 
@@ -49,6 +51,8 @@ fun DayNightWallpaperCard(
     onDayNightToggle: (Boolean) -> Unit,
     onSelectDayVideoClicked: () -> Unit,
     onSelectNightVideoClicked: () -> Unit,
+    savedWallpapers: List<SavedWallpaper> = emptyList(),
+    onEditVideoClicked: ((String) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val currentHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
@@ -201,35 +205,61 @@ fun DayNightWallpaperCard(
                                 }
                             }
 
+                            val dayWallpaper = savedWallpapers.find { it.uriString == config.dayVideoUri }
+                            val dayTitle = dayWallpaper?.title ?: if (config.dayVideoUri.isNotBlank()) config.dayVideoUri.substringAfterLast("/") else "Sin vídeo de Día"
+
                             Spacer(modifier = Modifier.height(6.dp))
 
                             Text(
                                 text = if (config.dayVideoUri.isNotBlank())
-                                    "Vídeo asignado: ${config.dayVideoUri.substringAfterLast("/")}"
+                                    "☀️ Vídeo asignado: $dayTitle"
                                 else
                                     "Sin vídeo específico de Día (usando vídeo principal)",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                color = if (config.dayVideoUri.isNotBlank()) Color(0xFFFF8F00) else MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontWeight = if (config.dayVideoUri.isNotBlank()) FontWeight.Bold else FontWeight.Normal,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
 
                             Spacer(modifier = Modifier.height(10.dp))
 
-                            OutlinedButton(
-                                onClick = onSelectDayVideoClicked,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .testTag("select_day_video_button"),
-                                shape = RoundedCornerShape(10.dp)
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                Icon(
-                                    imageVector = Icons.Default.VideoLibrary,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text("Asignar Vídeo de Día", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                OutlinedButton(
+                                    onClick = onSelectDayVideoClicked,
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .testTag("select_day_video_button"),
+                                    shape = RoundedCornerShape(10.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.VideoLibrary,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text("Asignar Día", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                }
+
+                                if (config.dayVideoUri.isNotBlank() && onEditVideoClicked != null) {
+                                    Button(
+                                        onClick = { onEditVideoClicked(config.dayVideoUri) },
+                                        modifier = Modifier.testTag("edit_day_video_button"),
+                                        shape = RoundedCornerShape(10.dp),
+                                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF8F00))
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Tune,
+                                            contentDescription = "Editar Día",
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Text("✏️ Editar", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                    }
+                                }
                             }
                         }
                     }
@@ -279,35 +309,61 @@ fun DayNightWallpaperCard(
                                 }
                             }
 
+                            val nightWallpaper = savedWallpapers.find { it.uriString == config.nightVideoUri }
+                            val nightTitle = nightWallpaper?.title ?: if (config.nightVideoUri.isNotBlank()) config.nightVideoUri.substringAfterLast("/") else "Sin vídeo de Noche"
+
                             Spacer(modifier = Modifier.height(6.dp))
 
                             Text(
                                 text = if (config.nightVideoUri.isNotBlank())
-                                    "Vídeo asignado: ${config.nightVideoUri.substringAfterLast("/")}"
+                                    "🌙 Vídeo asignado: $nightTitle"
                                 else
                                     "Sin vídeo específico de Noche (usando vídeo principal)",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                color = if (config.nightVideoUri.isNotBlank()) Color(0xFF7C4DFF) else MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontWeight = if (config.nightVideoUri.isNotBlank()) FontWeight.Bold else FontWeight.Normal,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
 
                             Spacer(modifier = Modifier.height(10.dp))
 
-                            OutlinedButton(
-                                onClick = onSelectNightVideoClicked,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .testTag("select_night_video_button"),
-                                shape = RoundedCornerShape(10.dp)
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                Icon(
-                                    imageVector = Icons.Default.VideoLibrary,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text("Asignar Vídeo de Noche", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                OutlinedButton(
+                                    onClick = onSelectNightVideoClicked,
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .testTag("select_night_video_button"),
+                                    shape = RoundedCornerShape(10.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.VideoLibrary,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text("Asignar Noche", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                }
+
+                                if (config.nightVideoUri.isNotBlank() && onEditVideoClicked != null) {
+                                    Button(
+                                        onClick = { onEditVideoClicked(config.nightVideoUri) },
+                                        modifier = Modifier.testTag("edit_night_video_button"),
+                                        shape = RoundedCornerShape(10.dp),
+                                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7C4DFF))
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Tune,
+                                            contentDescription = "Editar Noche",
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Text("✏️ Editar", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                    }
+                                }
                             }
                         }
                     }

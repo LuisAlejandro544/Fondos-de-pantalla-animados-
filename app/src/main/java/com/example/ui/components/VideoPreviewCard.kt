@@ -63,6 +63,17 @@ fun VideoPreviewCard(
     var isPlaying by remember { mutableStateOf(true) }
     var mediaPlayerState by remember { mutableStateOf<MediaPlayer?>(null) }
 
+    val currentHour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY)
+    val activeUri = remember(config, currentHour) {
+        if (config.isDayNightEnabled) {
+            val isDay = currentHour in config.dayStartHour until config.nightStartHour
+            val target = if (isDay) config.dayVideoUri else config.nightVideoUri
+            if (target.isNotBlank()) target else config.videoUri
+        } else {
+            config.videoUri
+        }
+    }
+
     Card(
         modifier = modifier
             .fillMaxWidth()
@@ -87,7 +98,7 @@ fun VideoPreviewCard(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            if (config.videoUri.isBlank()) {
+            if (activeUri.isBlank()) {
                 // Empty placeholder state
                 Box(
                     modifier = Modifier
@@ -141,7 +152,7 @@ fun VideoPreviewCard(
                 }
             } else {
                 // Active video preview box
-                androidx.compose.runtime.key(config.videoUri) {
+                androidx.compose.runtime.key(activeUri) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -167,7 +178,7 @@ fun VideoPreviewCard(
                                             try {
                                                 val mp = MediaPlayer().apply {
                                                     setSurface(holder.surface)
-                                                    setDataSource(ctx, Uri.parse(config.videoUri))
+                                                    setDataSource(ctx, Uri.parse(activeUri))
                                                     isLooping = true
                                                     setOnPreparedListener { player ->
                                                         val vol = if (config.isMuted) 0.0f else config.volume

@@ -32,8 +32,10 @@
 - **Modo Fondo Dinámico Día / Noche Automático**:
   - Cambio automático de fondo animado según la hora del sistema (Día: 06:00 - 18:00 h / Noche: 18:00 - 06:00 h).
   - Receptor en tiempo real (`Intent.ACTION_TIME_TICK`) que conmuta el vídeo activo exactamente cuando cambia el horario sin reinicios bruscos.
-  - Asignación rápida con un toque desde la Galería de Fondos (botones "Día ☀️" y "Noche 🌙") o desde la tarjeta dedicada en Ajustes.
-  - Indicador visual de estado que muestra el período activo actual y el vídeo en reproducción.
+  - **Selector Integrado con Badges `☀️ DÍA` y `🌙 NOCHE`**: Diálogo de selección nativo (`SelectWallpaperDialog`) que identifica con insignias claras qué fondos corresponden a Día o Noche y permite asignarlos con 1 solo toque.
+  - **Indicadores Visibles y Botón "✏️ Editar" (1-Click)**: Tarjetas e ítems de galería que muestran qué vídeo está asignado como Día/Noche (y cuál está "ACTIVO AHORA") con botón dedicado "✏️ Editar" para ajustar directamente sus filtros visuales, velocidad, volumen o escala en la pantalla del motor.
+  - **Almacenamiento Interno Persistente (Cero Problemas de Caché/Permisos)**: Todos los vídeos asignados a modos día/noche o clima se copian al almacenamiento interno permanente de la app (`files/wallpapers/`), resolviendo problemas de permisos expirados de `content://` y evitando que el vídeo antiguo se quede atascado en reproducción.
+  - Indicador visual de estado y previsualización dinámica en tiempo real que refleja el fondo activo del slot.
 - **Galería Independiente de Fondos con Detección "En Uso" y Acciones Rápidas**:
   - **Etiqueta "EN USO" Automática**: Identifica en tiempo real el fondo de pantalla animado activo en el sistema y resalta su tarjeta en la galería.
   - **Restauración al Fondo Estático Original**: Opción directa desde la galería para restaurar el fondo de pantalla estático original del sistema con un solo toque.
@@ -149,4 +151,11 @@ Se activa automáticamente cuando se sube un archivo `.zip` a la carpeta `zips/`
 - **Procesamiento de Código Completo**: Descarga y descomprime el código contenido en el archivo `.zip`.
 - **Sincronización Total (Incluyendo `.github`)**: Añade nuevos archivos, reemplaza código antiguo y actualiza/modifica acciones y workflows en la carpeta `.github`.
 - **Commit Automático**: Guarda y realiza un push de los cambios sincronizados a la rama principal.
+
+---
+
+## 📄 Licencia
+
+Este proyecto está bajo la licencia **PolyForm Noncommercial License 1.0.0** (`PolyForm-Noncommercial-1.0.0`). 
+Permite ver, usar localmente, modificar y redistribuir el código exclusivamente para **fines no comerciales** (uso personal, proyectos personales, investigación y estudio). No se permite el uso ni la publicación comercial. Para más detalles, consulta el archivo [`LICENSE`](./LICENSE).
 

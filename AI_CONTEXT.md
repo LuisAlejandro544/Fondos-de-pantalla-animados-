@@ -39,7 +39,11 @@ Proporcionar una aplicación Android moderna, ligera y estilizada que permita se
 4. **Gestión en Interfaz (`DayNightWallpaperCard` & `WeatherSolarCard`)**:
    - Selectores globales para activar/desactivar modos.
    - Banner de estado en vivo indicando la ubicación, temperatura, icono climático y horarios de sol.
-   - Asignación independiente de vídeos para *Soleado*, *Lluvia*, *Nublado* y *Nieve*.
+   - **Cuadro de Diálogo de Selección (`SelectWallpaperDialog`)**: Al presionar sobre cualquier slot (Día, Noche, Soleado, Lluvia, etc.), permite elegir de forma fluida cualquier vídeo ya guardado en la galería de la app (con badges `☀️ DÍA` y `🌙 NOCHE`) o explorar el almacenamiento del dispositivo.
+   - **Indicadores Visibles y Re-Edición con 1-Click**:
+     * `DayNightWallpaperCard` y los ítems de `WallpaperGalleryScreen` incluyen etiquetas prominentes `☀️ DÍA` y `🌙 NOCHE` que identifican qué vídeo está asignado a cada horario, mostrando cuál está "ACTIVO AHORA".
+     * Botón de acción **"✏️ Editar"** con 1 solo toque en cada slot o tarjeta para cargar directamente el fondo en la pantalla de ajustes y modificar al instante sus filtros visuales, velocidad, volumen o modo de escala.
+   - **Persistencia en Almacenamiento Interno (`files/wallpapers/`)**: Toda selección de vídeo convierte los URIs temporales del PhotoPicker en archivos MP4 permanentes con esquemas `file://`. Esto previene la revocación de permisos de Android OS, garantiza que `VideoWallpaperService` recargue inmediatamente el reproductor y erradica el fallo donde el vídeo antiguo quedaba guardado en caché.
 
 ## 🎨 Filtros Visuales y Efecto Blur en Tiempo Real (`VideoGlFilterRenderer.kt`)
 1. **Shaders GLSL en OpenGL ES 2.0**:
@@ -150,4 +154,8 @@ Proporcionar una aplicación Android moderna, ligera y estilizada que permita se
   3. Utiliza los permisos de GitHub `contents: write` y `actions: write`.
   4. Evalúa dinámicamente secrets para la autenticación de GitHub (`GH_PAT`, `PAT_TOKEN`, `REPO_TOKEN`, `GITHUB_TOKEN`, `TOKEN`).
   5. Realiza commit y push automático de los cambios a la rama principal.
+
+## 📄 Licencia del Proyecto
+- **PolyForm Noncommercial License 1.0.0** (`LICENSE`):
+  - Licencia estandarizada de fuente disponible para uso, modificación y distribución exclusivamente para fines no comerciales (uso personal, pruebas, proyectos personales y educativos). Prohíbe su explotación o publicación con fines comerciales.
 

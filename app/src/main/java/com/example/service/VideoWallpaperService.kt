@@ -250,8 +250,18 @@ class VideoWallpaperService : WallpaperService() {
             val oldActiveUri = oldConfig?.let { wallpaperPrefs.getActiveVideoUriForTime(it) } ?: ""
             val newActiveUri = wallpaperPrefs.getActiveVideoUriForTime(newConfig)
 
-            if (oldActiveUri != newActiveUri || currentlyPlayingUri != newActiveUri) {
-                // Active Video URI changed (e.g., Day/Night or Weather toggled), reload player
+            val uriConfigChanged = oldConfig?.videoUri != newConfig.videoUri ||
+                    oldConfig?.dayVideoUri != newConfig.dayVideoUri ||
+                    oldConfig?.nightVideoUri != newConfig.nightVideoUri ||
+                    oldConfig?.sunnyVideoUri != newConfig.sunnyVideoUri ||
+                    oldConfig?.rainyVideoUri != newConfig.rainyVideoUri ||
+                    oldConfig?.cloudyVideoUri != newConfig.cloudyVideoUri ||
+                    oldConfig?.snowyVideoUri != newConfig.snowyVideoUri ||
+                    oldConfig?.isDayNightEnabled != newConfig.isDayNightEnabled ||
+                    oldConfig?.isWeatherEnabled != newConfig.isWeatherEnabled
+
+            if (oldActiveUri != newActiveUri || currentlyPlayingUri != newActiveUri || uriConfigChanged) {
+                // Active Video URI or assigned URI config changed, reload player
                 surfaceHolder?.let { playVideo(it) }
             } else {
                 // Sound, visual filters, scale, resolution, or NDK settings changed
