@@ -1,6 +1,6 @@
-feat: agregada política de privacidad (privacy.html) y botón de acceso en la app + docs actualizados
+feat: agregada política de privacidad (privacy.html), barra de navegación en GitHub Pages y accesos en la app
 
-- Creada la página HTML de Política de Privacidad (`/docs/privacy.html`) para GitHub Pages siguiendo el estilo responsivo y paleta de color (Slate Navy & Índigo) de `index.html`.
+- Creada la página HTML de Política de Privacidad (`/docs/privacy.html`) para GitHub Pages y añadida barra de navegación interconectada entre `index.html` y `privacy.html`.
 - Añadido botón interactivo "Ver Política de Privacidad (GitHub Pages)" en `AppSettingsScreen.kt` con icono de seguridad, enlace directo a `privacy.html` y Toast fallback de privacidad local (0% datos).
-- Configurado el workflow `deploy-pages.yml` con `workflow_dispatch` exclusivo para activación manual de GitHub Pages (Términos y Política de Privacidad).
+- Configurado el workflow `deploy-pages.yml` con `workflow_dispatch` exclusivo para desplegar ambas páginas desde la carpeta `docs/`.
 - Actualizada la documentación del proyecto (`README.md`, `ROADMAP.md`, `STRUCTURE.md`, `AI_CONTEXT.md`) para incluir los nuevos artefactos y accesos legales.
